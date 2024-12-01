@@ -1,7 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
+
 body {
     margin: 0;
     padding: 0;
-    font-family: 'Futura', sans-serif;
+    font-family: 'Montserrat', sans-serif;
 }
 
 .connect-wallet {
@@ -42,7 +45,7 @@ body {
     border-radius: 4px;
     color: white;
     cursor: pointer;
-    font-family: 'Futura', sans-serif;
+    font-family: 'Montserrat', sans-serif;
 }
 
 .connect-button:hover {

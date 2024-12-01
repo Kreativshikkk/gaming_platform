@@ -28,19 +28,18 @@ function ConnectWallet() {
 
     return (
         <div className="connect-wallet">
-            {/*<div className="logo">*/}
-            {/*    <img src="/path-to-your-logo.png" alt="Logo"/>*/}
-            {/*</div>*/}
+            <div className="logo">
+                <img src="/logo.png" alt="Logo"/>
+            </div>
             <h1 className="title">Crypto Kazinich</h1>
             <div className="wallet-info">
-                {balance && <span className="balance">Balance: {balance} ETH</span>}
+                {balance && <span className="balance">Balance: {parseFloat(balance).toFixed(3)} ETH</span>}
                 <button onClick={connectWalletHandler} className="connect-button">
                     Connect Wallet
                 </button>
             </div>
         </div>
-    )
-        ;
+    );
 }
 
 export default ConnectWallet;
