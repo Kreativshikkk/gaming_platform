@@ -1,0 +1,50 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Futura', sans-serif;
+}
+
+.connect-wallet {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background-color: #333;
+    color: #fff;
+    font-size: 16px;
+}
+
+.logo img {
+    height: 50px;
+}
+
+.title {
+    margin: 0;
+    flex-grow: 1;
+    text-align: left;
+}
+
+.wallet-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.balance {
+    font-size: 14px;
+    color: #ddd;
+}
+
+.connect-button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    font-family: 'Futura', sans-serif;
+}
+
+.connect-button:hover {
+    background-color: #0056b3;
+}

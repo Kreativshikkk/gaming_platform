@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
+import './ConnectWallet.css';
+
 const ethers = require("ethers");
 
 function ConnectWallet() {
@@ -25,12 +27,20 @@ function ConnectWallet() {
     };
 
     return (
-        <div>
-            <button onClick={connectWalletHandler}>Connect Wallet</button>
-            {userAccount && <p>Account: {userAccount}</p>}
-            {userAccount && <p>Balance: {balance} ETH</p>}
+        <div className="connect-wallet">
+            {/*<div className="logo">*/}
+            {/*    <img src="/path-to-your-logo.png" alt="Logo"/>*/}
+            {/*</div>*/}
+            <h1 className="title">Crypto Kazinich</h1>
+            <div className="wallet-info">
+                {balance && <span className="balance">Balance: {balance} ETH</span>}
+                <button onClick={connectWalletHandler} className="connect-button">
+                    Connect Wallet
+                </button>
+            </div>
         </div>
-    );
+    )
+        ;
 }
 
 export default ConnectWallet;
