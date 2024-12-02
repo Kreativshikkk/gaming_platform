@@ -7,7 +7,6 @@ const ethers = require("ethers");
 function ConnectWallet() {
     const [userAccount, setUserAccount] = useState(null);
     const [balance, setBalance] = useState('0');
-    const [connected, setConnected] = useState(false);
     const [isWrongNetwork, setIsWrongNetwork] = useState(false);
     const [connectionState, setConnectionState] = useState('disconnected');
     const idSepolia = '0xaa36a7';
@@ -22,7 +21,7 @@ function ConnectWallet() {
                 setConnectionState('wrongNetwork');
             } else {
                 setIsWrongNetwork(false);
-               // setConnectionState('disconnected'); //исправить позже после нормальной поддержки подключённого кошелька
+                setConnectionState('disconnected'); //исправить позже после нормальной поддержки подключённого кошелька
             }
         } catch(err) {
             console.error(err);
@@ -36,10 +35,10 @@ function ConnectWallet() {
         //console.log(accounts)
         console.log("connecting the wallet...")
         if (window.ethereum) {
-            if (isWrongNetwork) {
+            if (connectionState === "connected") {
                 return;
             }
-            if (connectionState === "connected") {
+            if (connectionState === "wrongNetwork") {
                 return;
             }
             try {
@@ -175,7 +174,7 @@ function ConnectWallet() {
             </div>
             <h1 className="title">Crypto Kazinich</h1>
             <div className="wallet-info">
-                {balance && <span className="balance">Balance: {parseFloat(balance).toFixed(3)} ETH {userAccount}</span>}
+                {balance && <span className="balance">Balance: {parseFloat(balance).toFixed(3)} ETH</span>}
                 <button onClick={connectWalletHandler}
                         className={`connect-button ${buttonClass}`}>
                     {`${text}`}
