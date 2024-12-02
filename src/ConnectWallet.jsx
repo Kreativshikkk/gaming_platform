@@ -21,7 +21,7 @@ function ConnectWallet() {
                 setConnectionState('wrongNetwork');
             } else {
                 setIsWrongNetwork(false);
-                setConnectionState('disconnected'); //исправить позже после нормальной поддержки подключённого кошелька
+                setConnectionState('disconnected'); //maybe we'll fix this
             }
         } catch(err) {
             console.error(err);
@@ -30,9 +30,6 @@ function ConnectWallet() {
 
 
     const connectWalletHandler = async () => {
-        // console.log(window.ethereum.isConnected())
-        //const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-        //console.log(accounts)
         console.log("connecting the wallet...")
         if (window.ethereum) {
             if (connectionState === "connected") {
@@ -44,9 +41,6 @@ function ConnectWallet() {
             try {
                 const provider = new ethers.BrowserProvider(window.ethereum);
                 await provider.send("eth_requestAccounts", []);
-
-                // console.log(`abobbb `, a);
-
                 const signer = await provider.getSigner();
                 const account = await signer.getAddress();
                 setUserAccount(account);
@@ -100,9 +94,6 @@ function ConnectWallet() {
                 return;
             }
             console.log(accounts)
-            // if (isWrongNetwork) {
-            //     return;
-            // }
             try {
                 await connectWalletHandler();
             } catch(err) {
@@ -130,10 +121,6 @@ function ConnectWallet() {
             console.log("checking wallet connection...")
             if (window.ethereum && !isWrongNetwork) {
                 try {
-                    // const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-                    // if (chainId !== idSepolia) { //это лучше допилить мб объёдинить с чекнетворком
-                    //     return;
-                    // }
                     const accounts = await window.ethereum.request({ method: 'eth_accounts' });
                     if (accounts.length > 0) {
                         await connectWalletHandler();
