@@ -55,3 +55,8 @@ body {
 .connect-button.wrongNetwork {
     background-color: #970714; /* Зеленый, когда подключено */
 }
+
+
+.connect-button.connected {
+    background-color: #15b52f; /* Зеленый, когда подключено */
+}
