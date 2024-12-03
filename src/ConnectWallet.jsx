@@ -1,6 +1,5 @@
 import React, {useState, useEffect} from 'react';
 import './ConnectWallet.css';
-import {assertArgumentCount} from "ethers";
 
 const ethers = require("ethers");
 
@@ -9,21 +8,24 @@ function ConnectWallet() {
     const [balance, setBalance] = useState('0');
     const [isWrongNetwork, setIsWrongNetwork] = useState(false);
     const [connectionState, setConnectionState] = useState('disconnected');
+    const [menuVisible, setMenuVisible] = useState(false);
     const idSepolia = '0xaa36a7';
 
     //checking whether network wrong or not
     const checkNetwork = async () => {
         console.log("checking the network...")
         try {
-            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            const chainId = await window.ethereum.request({method: 'eth_chainId'});
             if (chainId !== idSepolia) { // Sepolia network ID
                 setIsWrongNetwork(true);
                 setConnectionState('wrongNetwork');
+                console.log("connected to the wrong network")
             } else {
                 setIsWrongNetwork(false);
-                setConnectionState('disconnected'); //maybe we'll fix this
+                console.log("connected to the right network")
+                // setConnectionState('disconnected'); //maybe we'll fix this
             }
-        } catch(err) {
+        } catch (err) {
             console.error(err);
         }
     };
@@ -33,11 +35,13 @@ function ConnectWallet() {
         console.log("connecting the wallet...")
         if (window.ethereum) {
             if (connectionState === "connected") {
+                console.log(`connected to ${userAccount}`)
+                setMenuVisible(!menuVisible);
                 return;
             }
-            if (connectionState === "wrongNetwork") {
-                return;
-            }
+            // if (connectionState === "wrongNetwork") {
+            //     return;
+            // }
             try {
                 const provider = new ethers.BrowserProvider(window.ethereum);
                 await provider.send("eth_requestAccounts", []);
@@ -46,9 +50,10 @@ function ConnectWallet() {
                 setUserAccount(account);
                 const balance = await provider.getBalance(account);
                 setBalance(ethers.formatEther(balance));
-                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                const chainId = await window.ethereum.request({method: 'eth_chainId'});
                 if (chainId === idSepolia) {
                     setConnectionState('connected');
+                    setIsWrongNetwork(false);
                 } else {
                     setConnectionState('wrongNetwork');
                     setIsWrongNetwork(true);
@@ -62,6 +67,26 @@ function ConnectWallet() {
             alert("Please install MetaMask!");
         }
     };
+
+    // const disconnectWalletHandler = () => {
+    //     setUserAccount(null);
+    //     setBalance('0');
+    //     setConnectionState('disconnected');
+    //     setMenuVisible(false);
+    //     console.log("wallet disconnected");
+        // if (window.ethereum) {
+        //     window.ethereum.request({
+        //         method: 'wallet_requestPermissions',
+        //         params: [{
+        //             eth_accounts: {}
+        //         }]
+        //     }).then(() => {
+        //         console.log("MetaMask permissions cleared");
+        //     }).catch((err) => {
+        //         console.error("Error clearing MetaMask permissions:", err);
+        //     });
+        // }
+    // };
 
 
     //listen chain changes
@@ -96,7 +121,7 @@ function ConnectWallet() {
             console.log(accounts)
             try {
                 await connectWalletHandler();
-            } catch(err) {
+            } catch (err) {
                 console.error(err);
             }
         };
@@ -121,9 +146,12 @@ function ConnectWallet() {
             console.log("checking wallet connection...")
             if (window.ethereum && !isWrongNetwork) {
                 try {
-                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    const accounts = await window.ethereum.request({method: 'eth_accounts'});
                     if (accounts.length > 0) {
                         await connectWalletHandler();
+                    }
+                    if (accounts.length === 0) {
+                        setConnectionState('disconnected');
                     }
                 } catch (err) {
                     console.error("Error checking wallet connection:", err);
@@ -132,9 +160,6 @@ function ConnectWallet() {
         };
         checkWalletConnection();
     }, [isWrongNetwork]);
-
-
-
 
 
     const buttonState = {
@@ -147,12 +172,12 @@ function ConnectWallet() {
             class: 'wrongNetwork',
         },
         connected: {
-            text: 'Connected',
+            text: userAccount ? `${userAccount.slice(0, 2)}...${userAccount.slice(-4)}` : '',
             class: 'connected',
         },
     };
 
-    const { text, class: buttonClass } = buttonState[connectionState];
+    const {text, class: buttonClass} = buttonState[connectionState];
 
     return (
         <div className="connect-wallet">

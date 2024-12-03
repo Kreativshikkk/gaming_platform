@@ -1,0 +1,27 @@
+.sidebar {
+    width: 275px;
+    height: 100vh;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    padding-top: 10px;
+    font-size: 16px;
+}
+
+.sidebar h2 {
+    text-align: center;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    padding: 10px;
+    cursor: pointer;
+    color: #333;
+}
+
+.sidebar li.active,
+.sidebar li:hover {
+    background-color: #ddd;
+}
