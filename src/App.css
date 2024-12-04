@@ -9,9 +9,13 @@
     flex: 1; /* Контент займет всё доступное пространство */
 }
 
-.GamePage {
-    flex: 1; /* Займет оставшееся место */
-    background-color: #ffffff;
-    padding: 20px;
+.sidebar-container {
+    flex: 1;
+    margin-right: 2vh; /* Добавляем отступ справа, чтобы оставить пространство между Sidebar и GamePage */
 }
 
+.gamepage-container {
+    flex: 4; /* Можно увеличить flex для GamePage, чтобы оно заняло больше места */
+    background-color: #ffffff;
+    padding: 5vh;
+}

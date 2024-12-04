@@ -10,11 +10,16 @@ function App() {
         <div className="App">
             <ConnectWallet />
             <div className="content">
-                <Sidebar/>
-                <GamePage/>
+                <div className="sidebar-container">
+                    <Sidebar />
+                </div>
+                <div className="gamepage-container">
+                    <GamePage />
+                </div>
             </div>
         </div>
     );
 }
+
 
 export default App;
