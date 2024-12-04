@@ -1,0 +1,10 @@
+.CheckersGamePage {
+    display: flex;
+}
+
+.game-controls-container {
+    flex: 1;
+    display: flex;
+    padding-left: 6vh;
+    padding-right: 30vh;
+}

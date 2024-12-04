@@ -1,9 +1,10 @@
 import React from 'react';
+import './styles/ChessBoard.css';
 
 function ChessBoard() {
     return (
-        <div style={{ width: '500px' }}>
-            <img src="/chessboard.jpg" alt="Chess Board" style={{ width: '100%', height: 'auto' }} />
+        <div className="chessboard-container">
+            <img src="/chessboard.jpg" alt="Chess Board" className="chessboard-image" />
         </div>
     );
 }

@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
-import './Sidebar.css';
+import React from 'react';
+import './styles/Sidebar.css';
 
-function Sidebar() {
-    const [selectedGame, setSelectedGame] = useState(null);
-    const games = ['Checkers', 'Chess', 'Battleship'];  // Список игр
+function Sidebar({ setSelectedGame }) {
+    const games = ['Checkers', 'Chess', 'Battleship'];
 
     return (
         <div className="sidebar">
@@ -12,7 +11,6 @@ function Sidebar() {
                 {games.map(game => (
                     <li
                         key={game}
-                        className={selectedGame === game ? 'active' : ''}
                         onClick={() => setSelectedGame(game)}
                     >
                         {game}

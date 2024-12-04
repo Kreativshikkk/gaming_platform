@@ -1,0 +1,74 @@
+.game-controls {
+    width: 100%;
+    height: calc(88vh - 80px);
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1); /* Тень для дополнения дизайна */
+    font-size: 16px; /* Размер шрифта как в sidebar */
+    color: #333; /* Цвет текста */
+    flex: 1;
+}
+
+.game-controls h1 {
+    text-align: center;
+}
+
+.game-controls h2 {
+    text-align: left;
+    font-size: 20px;
+    margin-top: 20px;
+}
+
+.game-controls h3 {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.game-controls button {
+    display: block;
+    width: 70%;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 10px auto;
+    border: none;
+    background-color: #f7f7f7;
+    color: #333;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.game-controls input {
+    display: block;
+    width: 62%;
+    padding: 15px;
+    margin: 10px auto;
+    border: solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.game-controls .stake-input {
+    display: block;
+    width: 64%;
+    height: 3%;
+    padding: 10px;
+    margin: 10px auto;
+    border: solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.game-controls .stop-button {
+    display: block;
+    width: 70%;
+    padding: 15px;
+    margin: 10px auto;
+    border: none;
+    background-color: rgba(255, 77, 77, 0.8);
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.centered-container {
+    padding-top: 15vh;
+}

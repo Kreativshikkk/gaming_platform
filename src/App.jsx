@@ -1,20 +1,22 @@
-import React from 'react';
+import React, {useState} from 'react';
 import ConnectWallet from './ConnectWallet';
 import Sidebar from "./Sidebar";
 import GamePage from "./CheckersGamePage";
-import './App.css';
+import './styles/App.css';
 
 
 function App() {
+    const [selectedGame, setSelectedGame] = useState(null);
+
     return (
         <div className="App">
             <ConnectWallet />
             <div className="content">
                 <div className="sidebar-container">
-                    <Sidebar />
+                    <Sidebar setSelectedGame={setSelectedGame}/>
                 </div>
                 <div className="gamepage-container">
-                    <GamePage />
+                    {selectedGame === 'Checkers' && <GamePage />}
                 </div>
             </div>
         </div>

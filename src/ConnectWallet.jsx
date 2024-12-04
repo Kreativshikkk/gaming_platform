@@ -1,13 +1,19 @@
-import React, {useState, useEffect} from 'react';
-import './ConnectWallet.css';
+import React, {useState, useEffect, useContext} from 'react';
+import './styles/ConnectWallet.css';
+import {WalletContext} from "./WalletContext.js";
 
 const ethers = require("ethers");
 
 function ConnectWallet() {
-    const [userAccount, setUserAccount] = useState(null);
-    const [balance, setBalance] = useState('0');
-    const [isWrongNetwork, setIsWrongNetwork] = useState(false);
-    const [connectionState, setConnectionState] = useState('disconnected');
+    const [isWrongNetwork, setIsWrongNetwork] = useState(false)
+    const {
+        connectionState,
+        setConnectionState,
+        userAccount,
+        setUserAccount,
+        balance,
+        setBalance
+    } = useContext(WalletContext);
     const [menuVisible, setMenuVisible] = useState(false);
     const idSepolia = '0xaa36a7';
 
@@ -51,7 +57,7 @@ function ConnectWallet() {
                     });
                     return;
 
-                } catch(err) {
+                } catch (err) {
                     console.error(err);
                 }
 
@@ -81,26 +87,6 @@ function ConnectWallet() {
             alert("Please install MetaMask!");
         }
     };
-
-    // const disconnectWalletHandler = () => {
-    //     setUserAccount(null);
-    //     setBalance('0');
-    //     setConnectionState('disconnected');
-    //     setMenuVisible(false);
-    //     console.log("wallet disconnected");
-        // if (window.ethereum) {
-        //     window.ethereum.request({
-        //         method: 'wallet_requestPermissions',
-        //         params: [{
-        //             eth_accounts: {}
-        //         }]
-        //     }).then(() => {
-        //         console.log("MetaMask permissions cleared");
-        //     }).catch((err) => {
-        //         console.error("Error clearing MetaMask permissions:", err);
-        //     });
-        // }
-    // };
 
 
     //listen chain changes

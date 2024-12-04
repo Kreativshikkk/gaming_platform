@@ -1,0 +1,11 @@
+.chessboard-container {
+    height: calc(88vh - 80px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chessboard-image {
+    flex: 1;
+    height: 100%;
+}

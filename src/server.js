@@ -1,39 +1,21 @@
+import { MessageType } from './MessageTypes.js';
+import { Server } from 'socket.io';
+
 const PORT = 8001;
 const MAX_ROOM_USERS = 2;
-
-const io = require('socket.io')(PORT);
 
 const rooms = {};
 let lastUserId = 0;
 let lastRoomId = 0;
 
-const MessageType = {
-    // A messages you send to server, when want to join or leave etc.
-    JOIN: 'join',
-    DISCONNECT: 'disconnect',
-
-    // You receive room info as a response for join command. It contains information about
-    // the room you joined, and it's users
-    ROOM: 'room',
-
-    // A messages you receive from server when another user want to join or leave etc.
-    USER_JOIN: 'user_join',
-    USER_READY: 'user_ready',
-    USER_LEAVE: 'user_leave',
-
-    // WebRtc signalling info, session and ice-framework related
-    SDP: 'sdp',
-    ICE_CANDIDATE: 'ice_candidate',
-
-    // Errors... shit happens
-    ERROR_ROOM_IS_FULL: 'error_room_is_full',
-    ERROR_USER_INITIALIZED: 'error_user_initialized'
-};
 
 class User {
-    constructor() {
+    constructor(userAccount, userBalance, stake) {
         lastUserId += 1;
+        this.stake = stake;
         this.userId = lastUserId;
+        this.userAccount = userAccount;
+        this.userBalance = userBalance;
     }
 
     getId() {
@@ -76,7 +58,7 @@ class Room {
     }
 
     removeUser(id) {
-        this.users.filter(function (user) {
+        this.users = this.users.filter(function (user) {
             return user.getId() !== id
         });
         delete this.sockets[id];
@@ -100,6 +82,12 @@ class Room {
             }
         }, this);
     }
+
+    BroadcastToAll(message, data) {
+        this.users.forEach(function (user) {
+                this.sendTo(user, message, data);
+        }, this);
+    }
 }
 
 function handleSocket(socket) {
@@ -109,20 +97,20 @@ function handleSocket(socket) {
     socket.on(MessageType.JOIN, function (data) {
 
         if (user !== null || room !== null) {
-            room.sendTo(user, MessageType.ERROR_USER_INITIALIZED);
+            room.sendTo(user, MessageType.ERROR_USER_INITIALIZED, {error: "User already initialized"});
             return;
         }
 
         room = getExistingOrCreateNewRoom(data.roomId);
-        user = new User();
+        user = new User(data.userAccount, data.balance, data.stake);
 
         if (room.usersAmount() >= MAX_ROOM_USERS) {
-            room.sendTo(user, MessageType.ERROR_ROOM_IS_FULL);
+            room.sendTo(user, MessageType.ERROR_ROOM_IS_FULL, {error: "Room is full"});
             return;
         }
 
         room.addUser(user, socket);
-        room.sendTo(user,
+        room.BroadcastToAll(
             MessageType.ROOM, {
                 roomId: room.getRoomId(),
                 userId: user.getId(),
@@ -177,6 +165,14 @@ function handleSocket(socket) {
         }
     });
 }
+
+const io = new Server(PORT, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"],
+        credentials: true
+    }
+});
 
 io.on('connection', handleSocket);
 console.log('Signalling server is running on port %d', PORT);
