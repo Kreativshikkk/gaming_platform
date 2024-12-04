@@ -23,7 +23,7 @@ function ConnectWallet() {
             } else {
                 setIsWrongNetwork(false);
                 console.log("connected to the right network")
-                // setConnectionState('disconnected'); //maybe we'll fix this
+                setConnectionState('disconnected'); //maybe we'll fix this
             }
         } catch (err) {
             console.error(err);
@@ -39,9 +39,23 @@ function ConnectWallet() {
                 setMenuVisible(!menuVisible);
                 return;
             }
-            // if (connectionState === "wrongNetwork") {
-            //     return;
-            // }
+            if (connectionState === "wrongNetwork") {
+                try {
+                    await window.ethereum.request({
+                        "method": "wallet_switchEthereumChain",
+                        "params": [
+                            {
+                                chainId: "0xaa36a7"
+                            }
+                        ],
+                    });
+                    return;
+
+                } catch(err) {
+                    console.error(err);
+                }
+
+            }
             try {
                 const provider = new ethers.BrowserProvider(window.ethereum);
                 await provider.send("eth_requestAccounts", []);

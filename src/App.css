@@ -1,0 +1,17 @@
+.App {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.content {
+    display: flex;
+    flex: 1; /* Контент займет всё доступное пространство */
+}
+
+.GamePage {
+    flex: 1; /* Займет оставшееся место */
+    background-color: #ffffff;
+    padding: 20px;
+}
+
