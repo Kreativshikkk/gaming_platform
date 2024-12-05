@@ -1,4 +1,4 @@
-import { MessageType } from './MessageTypes.js';
+import { MessageType } from '../MessageTypes.js';
 import { Server } from 'socket.io';
 
 const PORT = 8001;
@@ -147,6 +147,20 @@ function handleSocket(socket) {
     }
 
     socket.on(MessageType.DISCONNECT, function () {
+        if (room) {
+            room.removeUser(user.getId());
+            console.log('User %d left room %s. Users in room: %d',
+                user.getId(), room.getRoomId(), room.usersAmount());
+            if (room.isEmpty()) {
+                console.log('Room is empty - dropping room %d', room.getRoomId());
+                delete rooms[room.getRoomId()];
+            } else {
+                room.sendAll(user, MessageType.USER_LEAVE, user.getId());
+            }
+        }
+    });
+
+    socket.on(MessageType.CUSTOM_DISCONNECT, function () {
         if (room) {
             room.removeUser(user.getId());
             console.log('User %d left room %s. Users in room: %d',

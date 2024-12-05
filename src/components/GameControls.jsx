@@ -1,8 +1,8 @@
 import React, {useContext, useEffect, useState} from 'react';
-import './styles/GameControls.css';
+import '../styles/GameControls.css';
 import {io} from "socket.io-client";
-import {MessageType} from "./MessageTypes";
-import {WalletContext} from "./WalletContext.js";
+import {MessageType} from "../MessageTypes.js";
+import {WalletContext} from "../WalletContext.js";
 
 let socket = io('http://localhost:8001', {reconnection: false});
 
@@ -150,6 +150,13 @@ function GameControls() {
         setIsJoining(false);
     };
 
+    const handleDisconnectButton = () => {
+        setStake(0);
+        setRoomId(0);
+        setUsersInRoom([]);
+        socket.emit(MessageType.CUSTOM_DISCONNECT);
+    };
+
     let content;
     if (usersInRoom.length === 0) {
         content = (
@@ -193,6 +200,9 @@ function GameControls() {
             <>
                 <h3>Room ID: {roomId}</h3>
                 <h3>Waiting for another player...</h3>
+                <button className="disconnect-button" onClick={handleDisconnectButton}>
+                    Disconnect
+                </button>
             </>
         )
     } else if (usersInRoom.length === 2) {
@@ -205,8 +215,10 @@ function GameControls() {
                 <h2>Your account: {you.userAccount.slice(0, 2)}...{you.userAccount.slice(-4)}</h2>
                 <h2>Your balance: {parseFloat(you.userBalance).toFixed(3)} ETH</h2>
                 <h2>Opponent's account: {opponent.userAccount.slice(0, 2)}...{opponent.userAccount.slice(-4)}</h2>
-            </div>
-        )
+                <button className="disconnect-button" onClick={handleDisconnectButton}>
+                    Disconnect
+                </button>
+            </div>)
     }
 
     return (

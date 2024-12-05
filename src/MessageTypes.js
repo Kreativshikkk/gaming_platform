@@ -2,6 +2,7 @@ export const MessageType = {
     // A messages you send to server, when want to join or leave etc.
     JOIN: 'join',
     DISCONNECT: 'disconnect',
+    CUSTOM_DISCONNECT: 'custom_disconnect',
 
     // You receive room info as a response for join command. It contains information about
     // the room you joined, and it's users

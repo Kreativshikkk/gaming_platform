@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useContext} from 'react';
-import './styles/ConnectWallet.css';
-import {WalletContext} from "./WalletContext.js";
+import '../styles/ConnectWallet.css';
+import {WalletContext} from "../WalletContext.js";
 
 const ethers = require("ethers");
 

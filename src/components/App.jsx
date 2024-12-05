@@ -1,8 +1,8 @@
 import React, {useState} from 'react';
-import ConnectWallet from './ConnectWallet';
-import Sidebar from "./Sidebar";
-import GamePage from "./CheckersGamePage";
-import './styles/App.css';
+import ConnectWallet from './ConnectWallet.jsx';
+import Sidebar from "./Sidebar.jsx";
+import GamePage from "./CheckersGamePage.jsx";
+import '../styles/App.css';
 
 
 function App() {

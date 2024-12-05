@@ -1,7 +1,7 @@
 import React from 'react';
-import ChessBoard from './ChessBoard';
-import GameControls from './GameControls';
-import './styles/CheckersGamePage.css';
+import ChessBoard from './ChessBoard.jsx';
+import GameControls from './GameControls.jsx';
+import '../styles/CheckersGamePage.css';
 
 function GamePage() {
     return (
