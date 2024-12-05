@@ -107,7 +107,7 @@ function handleSocket(socket) {
         if (data.roomId && rooms[data.roomId]) {
             room = rooms[data.roomId];
             if (room.stake > data.balance) {
-                socket.emit(MessageType.ERROR_INSUFFICIENT_FUNDS, {error: "User has insufficient funds"});
+                socket.emit(MessageType.ERROR_INSUFFICIENT_FUNDS, {error: `User has insufficient funds, stake in this room: ${room.stake} ETH`});
                 return;
             }
         }

@@ -145,6 +145,11 @@ function GameControls() {
         }
     };
 
+    const handleConnectButton = () => {
+        handleJoinRoom();
+        setIsJoining(false);
+    };
+
     let content;
     if (usersInRoom.length === 0) {
         content = (
@@ -162,6 +167,9 @@ function GameControls() {
                             onChange={handleInputChange}
                             onKeyDown={handleInputKeyPress}
                         />
+                        <button className="connect-button" onClick={handleConnectButton}>
+                            Connect
+                        </button>
                         <button className="stop-button" onClick={handleStopConnection}>
                             Stop Connection
                         </button>

@@ -181,14 +181,21 @@ function ConnectWallet() {
 
     return (
         <div className="connect-wallet">
-            <div className="logo">
-                <img src="/logo.png" alt="Logo"/>
+            <div className="logo-title-container">
+                <div className="logo">
+                    <img src="/logo.png" alt="Logo"/>
+                </div>
+                <h1 className="title">Gaming University</h1>
+                <div className="logo2">
+                    <img src="/logo2.png" alt="Logo"/>
+                </div>
             </div>
-            <h1 className="title">Crypto Kazinich</h1>
             <div className="wallet-info">
                 {balance && <span className="balance">Balance: {parseFloat(balance).toFixed(3)} ETH</span>}
-                <button onClick={connectWalletHandler}
-                        className={`connect-button ${buttonClass}`}>
+                <button
+                    onClick={connectWalletHandler}
+                    className={`connect-button ${buttonClass}`}
+                >
                     {`${text}`}
                 </button>
             </div>
