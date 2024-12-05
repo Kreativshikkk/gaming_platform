@@ -7,6 +7,9 @@ export const MessageType = {
     // the room you joined, and it's users
     ROOM: 'room',
 
+    // When you join the room you get stake of this room
+    STAKE: 'stake',
+
     // A messages you receive from server when another user want to join or leave etc.
     USER_JOIN: 'user_join',
     USER_READY: 'user_ready',
@@ -18,5 +21,7 @@ export const MessageType = {
 
     // Errors... shit happens
     ERROR_ROOM_IS_FULL: 'error_room_is_full',
-    ERROR_USER_INITIALIZED: 'error_user_initialized'
+    ERROR_USER_INITIALIZED: 'error_user_initialized',
+    ERROR_INSUFFICIENT_FUNDS: 'error_insufficient_funds'
+
 };

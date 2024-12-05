@@ -10,7 +10,7 @@ socket.on('connect', () => {
     console.log('Connected to the signaling server');
 });
 
-socket.on('connect_error', (error) => {
+socket.once('connect_error', (error) => {
     console.error('Error connecting to signaling server:', error);
     alert('Error connecting to signaling server: ' + error.message);
     socket.disconnect();
@@ -32,6 +32,7 @@ function GameControls() {
                 setRoomId(data.roomId);
                 setUserId(data.userId);
                 setUsersInRoom(data.users);
+                console.log(`new user id ${data.userId}`);
             }
             else {
                 setUsersInRoom(data.users);
@@ -54,6 +55,11 @@ function GameControls() {
 
         if (stake === 0) {
             alert('Please set your stake.');
+            return;
+        }
+
+        if (stake > balance) {
+            alert('Insufficient funds');
             return;
         }
 
@@ -86,10 +92,10 @@ function GameControls() {
             return;
         }
 
-        if (stake === 0) {
-            alert('Please set your stake.');
-            return;
-        }
+        // if (stake === 0) {
+        //     alert('Please set your stake.');
+        //     return;
+        // }
 
         console.log('Joining room...');
 
@@ -109,8 +115,15 @@ function GameControls() {
             alert('Error connecting to room: ' + data.error);
         };
 
+        const gotStake = (data) => {
+            setStake(data.stake);
+        };
+
+
+        socket.once(MessageType.STAKE, gotStake);
         socket.once(MessageType.ERROR_ROOM_IS_FULL, onError);
         socket.once(MessageType.ERROR_USER_INITIALIZED, onError);
+        socket.once(MessageType.ERROR_INSUFFICIENT_FUNDS, onError);
     };
 
     const handleJoinRoomButton = () => {
@@ -180,12 +193,10 @@ function GameControls() {
         content = (
             <div className="centered-container">
                 <h2>Room ID: {roomId}</h2>
-                <h2>Your stake: {you.stake}</h2>
+                <h2>Stake: {stake} ETH</h2>
                 <h2>Your account: {you.userAccount.slice(0, 2)}...{you.userAccount.slice(-4)}</h2>
-                <h2>Your balance: {you.userBalance}</h2>
-                <h2>Opponent stake: {opponent.stake}</h2>
-                <h2>Opponent account: {opponent.userAccount.slice(0, 2)}...{opponent.userAccount.slice(-4)}</h2>
-                <h2>Opponent balance: {opponent.userBalance}</h2>
+                <h2>Your balance: {parseFloat(you.userBalance).toFixed(3)} ETH</h2>
+                <h2>Opponent's account: {opponent.userAccount.slice(0, 2)}...{opponent.userAccount.slice(-4)}</h2>
             </div>
         )
     }

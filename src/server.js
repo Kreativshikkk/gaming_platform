@@ -10,9 +10,8 @@ let lastRoomId = 0;
 
 
 class User {
-    constructor(userAccount, userBalance, stake) {
+    constructor(userAccount, userBalance) {
         lastUserId += 1;
-        this.stake = stake;
         this.userId = lastUserId;
         this.userAccount = userAccount;
         this.userBalance = userBalance;
@@ -24,7 +23,8 @@ class User {
 }
 
 class Room {
-    constructor(id) {
+    constructor(id, stake) {
+        this.stake = stake;
         this.roomId = id;
         this.users = [];
         this.sockets = {};
@@ -95,17 +95,27 @@ function handleSocket(socket) {
     let room = null;
 
     socket.on(MessageType.JOIN, function (data) {
+        // if (user !== null || room !== null) {
+        //     room.sendTo(user, MessageType.ERROR_USER_INITIALIZED, {error: "User already initialized"});
+        //     return;
+        // }
 
-        if (user !== null || room !== null) {
-            room.sendTo(user, MessageType.ERROR_USER_INITIALIZED, {error: "User already initialized"});
-            return;
+        if (!user) {
+            user = new User(data.userAccount, data.balance);
         }
 
-        room = getExistingOrCreateNewRoom(data.roomId);
-        user = new User(data.userAccount, data.balance, data.stake);
+        if (data.roomId && rooms[data.roomId]) {
+            room = rooms[data.roomId];
+            if (room.stake > data.balance) {
+                socket.emit(MessageType.ERROR_INSUFFICIENT_FUNDS, {error: "User has insufficient funds"});
+                return;
+            }
+        }
+
+        room = getExistingOrCreateNewRoom(data.roomId, data.stake);
 
         if (room.usersAmount() >= MAX_ROOM_USERS) {
-            room.sendTo(user, MessageType.ERROR_ROOM_IS_FULL, {error: "Room is full"});
+            socket.emit(MessageType.ERROR_ROOM_IS_FULL, {error: "Room is full"});
             return;
         }
 
@@ -117,23 +127,20 @@ function handleSocket(socket) {
                 users: room.getUsers()
             });
 
-        room.sendAll(user, MessageType.USER_JOIN,
-            {
-                userId: user.getId(),
-                users: room.getUsers()
-            });
-
         console.log('User %s joined room %d. Users in room: %d',
             user.getId(), room.getRoomId(), room.usersAmount());
     });
 
-    function getExistingOrCreateNewRoom(roomId) {
+    function getExistingOrCreateNewRoom(roomId, stake) {
         if (!roomId) {
             roomId = ++lastRoomId;
         }
         room = rooms[roomId];
+        if (room) {
+            socket.emit(MessageType.STAKE, {stake: room.stake});
+        }
         if (!room) {
-            room = new Room(roomId);
+            room = new Room(roomId, stake);
             rooms[roomId] = room;
         }
         return room;
