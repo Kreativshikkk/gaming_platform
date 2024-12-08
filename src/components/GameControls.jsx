@@ -29,14 +29,11 @@ function GameControls() {
     useEffect(() => {
         const onRoomConnected = (data) => {
             if (userId === null) {
-                setRoomId(data.roomId);
                 setUserId(data.userId);
-                setUsersInRoom(data.users);
                 console.log(`new user id ${data.userId}`);
             }
-            else {
-                setUsersInRoom(data.users);
-            }
+            setRoomId(data.roomId);
+            setUsersInRoom(data.users);
             console.log('Connected to room:', data.roomId);
         };
 
@@ -44,6 +41,20 @@ function GameControls() {
 
         return () => {
             socket.off(MessageType.ROOM, onRoomConnected);
+        };
+    }, [userId]);
+
+
+    useEffect(() => {
+        const userDisconnected = (data) => {
+            setUsersInRoom(data.users);
+            console.log(`User ${data.userId} disconnected`);
+        };
+
+        socket.on(MessageType.USER_LEAVE, userDisconnected);
+
+        return () => {
+            socket.off(MessageType.USER_LEAVE, userDisconnected);
         };
     }, [userId]);
 
@@ -67,16 +78,6 @@ function GameControls() {
 
         socket.emit(MessageType.JOIN, {roomId: '', userAccount: userAccount, balance: balance, stake: stake});
 
-        // const onRoomConnected = (data) => {
-        //     setRoomId(data.roomId);
-        //     setUserId(data.userId);
-        //     setUsersInRoom(data.users);
-        //     console.log('Connected to room:', data.roomId);
-        //     socket.off(MessageType.ROOM, onRoomConnected);
-        // }
-        //
-        // socket.on(MessageType.ROOM, onRoomConnected);
-
         const onError = (data) => {
             console.error('Error connecting to room:', data.error);
             alert('Error connecting to room: ' + data.error);
@@ -92,23 +93,9 @@ function GameControls() {
             return;
         }
 
-        // if (stake === 0) {
-        //     alert('Please set your stake.');
-        //     return;
-        // }
-
         console.log('Joining room...');
 
         socket.emit(MessageType.JOIN, {roomId: roomId, userAccount: userAccount, balance: balance, stake: stake});
-        // const onRoomConnected = (data) => {
-        //     setRoomId(data.roomId);
-        //     setUserId(data.userId);
-        //     setUsersInRoom(data.users);
-        //     console.log('Connected to room:', data.roomId);
-        //     socket.off(MessageType.ROOM, onRoomConnected);
-        // };
-        //
-        // socket.on(MessageType.ROOM, onRoomConnected);
 
         const onError = (data) => {
             console.error('Error connecting to room:', data.error);
@@ -151,8 +138,9 @@ function GameControls() {
     };
 
     const handleDisconnectButton = () => {
+        console.log(`Disconnected from room ${roomId}`);
         setStake(0);
-        setRoomId(0);
+        setRoomId(null);
         setUsersInRoom([]);
         socket.emit(MessageType.CUSTOM_DISCONNECT);
     };
