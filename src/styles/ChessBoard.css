@@ -1,11 +1,44 @@
+:root {
+    --board-size: 8;
+    --cell-size-vh: 8vh;
+    --board-height-vh: calc(var(--board-size) * var(--cell-size-vh));
+    --color-dark: #d3733a;
+    --color-light: #f5dfc3;
+    --color-selected: #8e4624;
+}
+
 .chessboard-container {
-    height: calc(88vh - 80px);
+    display: grid;
+    grid-template-columns: repeat(var(--board-size), 1fr);
+    grid-template-rows: repeat(var(--board-size), 1fr);
+    gap: 0;
+    width: var(--board-height-vh);
+    height: var(--board-height-vh);
+}
+
+.cell {
+    width: 100%;
+    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
 }
 
-.chessboard-image {
-    flex: 1;
-    height: 100%;
+.checker {
+    width: 80%;
+    height: 80%;
+    border-radius: 50%
+}
+
+.left-digits {
+    position: absolute;
+    top: 0;
+    left: 0
+}
+
+.bottom-letters {
+    position: absolute;
+    bottom: 0;
+    right: 0;
 }
