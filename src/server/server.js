@@ -1,5 +1,5 @@
-import { MessageType } from '../MessageTypes.js';
-import { Server } from 'socket.io';
+import {MessageType} from '../MessageTypes.js';
+import {Server} from 'socket.io';
 
 const PORT = 8001;
 const MAX_ROOM_USERS = 2;
@@ -10,11 +10,12 @@ let lastRoomId = 0;
 
 
 class User {
-    constructor(userAccount, userBalance) {
+    constructor(userAccount, userBalance, userColor) {
         lastUserId += 1;
         this.userId = lastUserId;
         this.userAccount = userAccount;
         this.userBalance = userBalance;
+        this.userColor = userColor;
     }
 
     getId() {
@@ -24,10 +25,25 @@ class User {
 
 class Room {
     constructor(id, stake) {
+        this.available_colors = ['black', 'white'];
         this.stake = stake;
         this.roomId = id;
         this.users = [];
         this.sockets = {};
+    }
+
+    assignColor() {
+        if (this.users.length === 0) {
+            const index = Math.random() > 0.5 ? 1 : 0;
+            const color = this.available_colors[index];
+            this.available_colors.splice(index, 1);
+            return color;
+        }
+        if (this.users.length === 1) {
+            const color = this.available_colors[0];
+            this.available_colors.splice(0, 1);
+            return color;
+        }
     }
 
     getRoomId() {
@@ -58,6 +74,9 @@ class Room {
     }
 
     removeUser(id) {
+        if (this.getUserById(id)){
+            this.available_colors.push(this.getUserById(id).userColor);
+        }
         this.users = this.users.filter(function (user) {
             return user.getId() !== id
         });
@@ -85,7 +104,7 @@ class Room {
 
     BroadcastToAll(message, data) {
         this.users.forEach(function (user) {
-                this.sendTo(user, message, data);
+            this.sendTo(user, message, data);
         }, this);
     }
 }
@@ -95,11 +114,6 @@ function handleSocket(socket) {
     let room = null;
 
     socket.on(MessageType.JOIN, function (data) {
-        // if (user !== null || room !== null) {
-        //     room.sendTo(user, MessageType.ERROR_USER_INITIALIZED, {error: "User already initialized"});
-        //     return;
-        // }
-
         if (!user) {
             user = new User(data.userAccount, data.balance);
         }
@@ -113,6 +127,7 @@ function handleSocket(socket) {
         }
 
         room = getExistingOrCreateNewRoom(data.roomId, data.stake);
+        user.userColor = room.assignColor();
 
         if (room.usersAmount() >= MAX_ROOM_USERS) {
             socket.emit(MessageType.ERROR_ROOM_IS_FULL, {error: "Room is full"});
@@ -127,8 +142,8 @@ function handleSocket(socket) {
                 users: room.getUsers()
             });
 
-        console.log('User %s joined room %d. Users in room: %d',
-            user.getId(), room.getRoomId(), room.usersAmount());
+        console.log('User %s joined room %d. His color is %s. Users in room: %d',
+            user.getId(), room.getRoomId(), user.userColor, room.usersAmount());
     });
 
     function getExistingOrCreateNewRoom(roomId, stake) {

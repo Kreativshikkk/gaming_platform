@@ -23,11 +23,15 @@ const generateInitialBoard = () => {
     return board;
 };
 
-const Board = () => {
+const Board = ({ isGameReady }) => {
     const [board, setBoard] = useState(generateInitialBoard());
     const [selected, setSelected] = useState(null);
 
     const handleCellClick = (row, col) => {
+        if (!isGameReady) {
+            alert('Waiting for another player');
+            return;
+        }
         if (selected && isValidMove(selected.row, selected.col, row, col, board)) {
             makeMove(selected.row, selected.col, row, col, board, setBoard);
             setSelected(null);

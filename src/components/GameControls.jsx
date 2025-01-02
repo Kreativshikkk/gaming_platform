@@ -18,13 +18,17 @@ socket.once('connect_error', (error) => {
 });
 
 
-function GameControls() {
+function GameControls({setPlayerCount}) {
     const [stake, setStake] = useState(0);
     const {connectionState, userAccount, balance} = useContext(WalletContext);
     const [roomId, setRoomId] = useState(0);
     const [userId, setUserId] = useState(null);
     const [usersInRoom, setUsersInRoom] = useState([]);
     const [isJoining, setIsJoining] = useState(false);
+
+    useEffect(() => {
+        setPlayerCount(usersInRoom.length);
+    }, [usersInRoom, setPlayerCount]);
 
     useEffect(() => {
         const onRoomConnected = (data) => {
@@ -76,7 +80,12 @@ function GameControls() {
 
         console.log('Creating room...');
 
-        socket.emit(MessageType.JOIN, {roomId: '', userAccount: userAccount, balance: balance, stake: stake});
+        socket.emit(MessageType.JOIN, {
+            roomId: '',
+            userAccount: userAccount,
+            balance: balance,
+            stake: stake,
+        });
 
         const onError = (data) => {
             console.error('Error connecting to room:', data.error);
@@ -95,7 +104,13 @@ function GameControls() {
 
         console.log('Joining room...');
 
-        socket.emit(MessageType.JOIN, {roomId: roomId, userAccount: userAccount, balance: balance, stake: stake});
+
+        socket.emit(MessageType.JOIN, {
+            roomId: roomId,
+            userAccount: userAccount,
+            balance: balance,
+            stake: stake
+        });
 
         const onError = (data) => {
             console.error('Error connecting to room:', data.error);
@@ -105,7 +120,6 @@ function GameControls() {
         const gotStake = (data) => {
             setStake(data.stake);
         };
-
 
         socket.once(MessageType.STAKE, gotStake);
         socket.once(MessageType.ERROR_ROOM_IS_FULL, onError);
