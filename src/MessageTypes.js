@@ -23,6 +23,11 @@ export const MessageType = {
     // Errors... shit happens
     ERROR_ROOM_IS_FULL: 'error_room_is_full',
     ERROR_USER_INITIALIZED: 'error_user_initialized',
-    ERROR_INSUFFICIENT_FUNDS: 'error_insufficient_funds'
+    ERROR_INSUFFICIENT_FUNDS: 'error_insufficient_funds',
 
+    // Checkers game process
+    UPDATE_BOARD: 'update_board',
+    MAKE_MOVE: 'make_move',
+    INVALID_MOVE: 'invalid_move',
+    MOVE_TURN: 'move_turn'
 };

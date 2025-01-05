@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import '../styles/ChessBoard.css';
+import {MessageType} from "../MessageTypes.js";
 
 const boardSize = 8;
 const onSelectedColor = '#8e4624';
@@ -23,25 +24,96 @@ const generateInitialBoard = () => {
     return board;
 };
 
-const Board = ({ isGameReady }) => {
+const invertedBoard = (board) => {
+    const newBoard = [];
+    for (let i = boardSize - 1; i >= 0; i--) {
+        newBoard.push(board[i].slice().reverse());
+    }
+    return newBoard;
+}
+
+const Board = ({isGameReady, roomId, userId, socket, usersInRoom}) => {
+
     const [board, setBoard] = useState(generateInitialBoard());
     const [selected, setSelected] = useState(null);
+    const [moving, setMoving] = useState('white');
+
+    let color;
+    if (isGameReady) {
+        color = usersInRoom.filter(user => user.userId === userId)[0]?.userColor;
+    }
+
+    useEffect(() => {
+        if (color === 'black') {
+            setBoard(invertedBoard(board));
+        }
+        if (!isGameReady) {
+            setBoard(generateInitialBoard());
+        }
+    }, [color]);
+
+    useEffect(() => {
+        const onBoardUpdate = (data) => {
+            console.log(usersInRoom);
+            if (color === 'white') {
+                setBoard(data.board);
+            } else {
+                setBoard(invertedBoard(data.board));
+            }
+
+            setMoving(data.moving);
+        }
+
+        socket.on(MessageType.UPDATE_BOARD, onBoardUpdate);
+
+        return () => {
+            socket.off(MessageType.UPDATE_BOARD, onBoardUpdate);
+        };
+    }, [socket, userId, usersInRoom, color]);
+
+    useEffect(() => {
+        const onInvalidMove = () => {
+            alert('Invalid move!');
+        }
+
+        socket.on(MessageType.INVALID_MOVE, onInvalidMove);
+
+        return () => {
+            socket.off(MessageType.INVALID_MOVE, onInvalidMove);
+        };
+    }, [socket]);
 
     const handleCellClick = (row, col) => {
         if (!isGameReady) {
             alert('Waiting for another player');
             return;
         }
-        if (selected && isValidMove(selected.row, selected.col, row, col, board)) {
-            makeMove(selected.row, selected.col, row, col, board, setBoard);
+        if (selected) {
+            let fromRow, fromCol, toRow, toCol;
+            if (color === 'black') {
+                fromRow = boardSize - selected.row - 1
+                fromCol = boardSize - selected.col - 1
+                toRow = boardSize - row - 1
+                toCol = boardSize - col - 1
+            } else if (color === 'white') {
+                fromRow = selected.row
+                fromCol = selected.col
+                toRow = row
+                toCol = col
+            }
+            socket.emit(MessageType.MAKE_MOVE, {
+                userId: userId,
+                roomId: roomId,
+                fromRow: fromRow,
+                fromCol: fromCol,
+                toRow: toRow,
+                toCol: toCol
+            });
             setSelected(null);
-        } else if (board[row][col]) {
-            setSelected({ row, col });
+        } else if (board[row][col] && board[row][col] === color && moving === color) {
+            setSelected({row, col});
         } else if (selected && selected.row === row && selected.col === col) {
             setSelected(null);
-        }
-        else {
-            alert('Invalid move!');
         }
     };
 
@@ -77,89 +149,6 @@ const Board = ({ isGameReady }) => {
             )}
         </div>
     );
-};
-
-const isValidMove = (fromRow, fromCol, toRow, toCol, board) => {
-    const player = board[fromRow][fromCol];
-    const enemy = player === 'black' ? 'white' : 'black';
-
-    const canCapture = (row, col) => {
-        const directions = [
-            [2, 2], [2, -2], [-2, 2], [-2, -2]
-        ];
-        let capturePossible = false;
-        directions.forEach(([dr, dc]) => {
-            const midRow = row + dr / 2;
-            const midCol = col + dc / 2;
-            const newRow = row + dr;
-            const newCol = col + dc;
-            if (
-                newRow >= 0 && newRow < boardSize &&
-                newCol >= 0 && newCol < boardSize &&
-                board[midRow][midCol] === enemy &&
-                board[newRow][newCol] === null
-            ) {
-                capturePossible = true;
-            }
-        });
-        return capturePossible;
-    };
-
-    const canReachAfterCaptures = (row, col, toRow, toCol) => {
-        const boardSize = board.length;
-        const availableEnemyDirections = [
-            [1, 1], [1, -1], [-1, 1], [-1, -1]
-        ];
-
-        const afterCapturingPossiblePositions = [];
-
-        availableEnemyDirections.forEach(([dr, dc]) => {
-            const enemyRow = row + dr;
-            const enemyCol = col + dc;
-            const landingRow = row + 2 * dr;
-            const landingCol = col + 2 * dc;
-
-            if (enemyRow >= 0 && enemyRow < boardSize && enemyCol >= 0 && enemyCol < boardSize &&
-                landingRow >= 0 && landingRow < boardSize && landingCol >= 0 && landingCol < boardSize &&
-                board[enemyRow][enemyCol] === enemy && board[landingRow][landingCol] === null) {
-                afterCapturingPossiblePositions.push([landingRow, landingCol]);
-            }
-        });
-
-        return afterCapturingPossiblePositions.some(([newRow, newCol]) => {
-            return newRow === toRow && newCol === toCol;
-        });
-    };
-
-    const mustCapture = board.some((row, i) =>
-        row.some((cell, j) => cell === player && canCapture(i, j))
-    );
-
-    if (mustCapture) {
-        return canReachAfterCaptures(fromRow, fromCol, toRow, toCol);
-    }
-
-    if (player === 'black') {
-        return (toRow - fromRow === 1 && Math.abs(fromCol - toCol) === 1 && board[toRow][toCol] === null)
-    }
-    if (player === 'white') {
-        return (fromRow - toRow === 1 && Math.abs(fromCol - toCol) === 1 && board[toRow][toCol] === null)
-    }
-};
-
-const makeMove = (fromRow, fromCol, toRow, toCol, board, setBoard) => {
-    const newBoard = board.map(row => [...row]);
-
-    if (Math.abs(fromRow - toRow) === 2) {
-        const midRow = fromRow + (toRow - fromRow) / 2;
-        const midCol = fromCol + (toCol - fromCol) / 2;
-        newBoard[midRow][midCol] = null;
-    }
-
-    newBoard[fromRow][fromCol] = null;
-    newBoard[toRow][toCol] = board[fromRow][fromCol];
-
-    setBoard(newBoard);
 };
 
 export default Board;

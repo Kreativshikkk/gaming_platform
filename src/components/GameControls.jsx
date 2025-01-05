@@ -1,24 +1,10 @@
 import React, {useContext, useEffect, useState} from 'react';
 import '../styles/GameControls.css';
-import {io} from "socket.io-client";
 import {MessageType} from "../MessageTypes.js";
 import {WalletContext} from "../WalletContext.js";
 
-let socket = io('http://localhost:8001', {reconnection: false});
 
-socket.on('connect', () => {
-    console.log('Connected to the signaling server');
-});
-
-socket.once('connect_error', (error) => {
-    console.error('Error connecting to signaling server:', error);
-    alert('Error connecting to signaling server: ' + error.message);
-    socket.disconnect();
-    socket = null;
-});
-
-
-function GameControls({setPlayerCount}) {
+function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally, socket, setUsersInRoomExternally}) {
     const [stake, setStake] = useState(0);
     const {connectionState, userAccount, balance} = useContext(WalletContext);
     const [roomId, setRoomId] = useState(0);
@@ -31,6 +17,14 @@ function GameControls({setPlayerCount}) {
     }, [usersInRoom, setPlayerCount]);
 
     useEffect(() => {
+        setRoomIdExternally(roomId)
+    }, [roomId, setRoomIdExternally]);
+
+    useEffect(() => {
+        setUserIdExternally(userId)
+    }, [userId, setUserIdExternally]);
+
+    useEffect(() => {
         const onRoomConnected = (data) => {
             if (userId === null) {
                 setUserId(data.userId);
@@ -38,6 +32,7 @@ function GameControls({setPlayerCount}) {
             }
             setRoomId(data.roomId);
             setUsersInRoom(data.users);
+            setUsersInRoomExternally(data.users);
             console.log('Connected to room:', data.roomId);
         };
 
@@ -46,7 +41,7 @@ function GameControls({setPlayerCount}) {
         return () => {
             socket.off(MessageType.ROOM, onRoomConnected);
         };
-    }, [userId]);
+    }, [userId, socket, setUsersInRoomExternally]);
 
 
     useEffect(() => {
@@ -60,7 +55,7 @@ function GameControls({setPlayerCount}) {
         return () => {
             socket.off(MessageType.USER_LEAVE, userDisconnected);
         };
-    }, [userId]);
+    }, [userId, socket]);
 
     const handleCreateRoom = () => {
         if (connectionState !== 'connected') {
