@@ -207,6 +207,7 @@ function handleSocket(socket) {
             if (piece.isValidMove(data.fromRow, data.fromCol, data.toRow, data.toCol, room.board)) {
                 console.log("Making move in room...");
                 data = piece.makeMove(data.fromRow, data.fromCol, data.toRow, data.toCol, room.board);
+                console.log(data.board);
                 room.board = data.board;
                 room.moving = data.moving;
             } else {

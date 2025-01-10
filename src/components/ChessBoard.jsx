@@ -58,6 +58,7 @@ const Board = ({isGameReady, roomId, userId, socket, usersInRoom}) => {
             console.log(usersInRoom);
             if (color === 'white') {
                 setBoard(data.board);
+                console.log(data.board);
             } else {
                 setBoard(invertedBoard(data.board));
             }
@@ -134,7 +135,7 @@ const Board = ({isGameReady, roomId, userId, socket, usersInRoom}) => {
                             color: (rowIndex + colIndex) % 2 === 1 ? textColorOnBlack : textColorOnWhite,
                         }}
                     >
-                        {cell && (cell instanceof Man) && (
+                        {cell && (cell.type === 'man') && (
                             <div
                                 className="checker"
                                 style={{
@@ -142,7 +143,7 @@ const Board = ({isGameReady, roomId, userId, socket, usersInRoom}) => {
                                 }}
                             />
                         )}
-                        {cell && (cell instanceof King) && (
+                        {cell && (cell.type === 'king') && (
                             <div
                                 className="checker-king"
                                 style={{

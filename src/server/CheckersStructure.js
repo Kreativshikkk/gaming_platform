@@ -17,12 +17,14 @@ export class Man extends Piece {
     color;
     row;
     col;
+    type;
 
     constructor(color, row, col) {
         super(color);
         this.color = color;
         this.row = row;
         this.col = col;
+        this.type = 'man';
     }
 
     isValidMove(fromRow, fromCol, toRow, toCol, board) {
@@ -111,7 +113,7 @@ export class Man extends Piece {
         this.row = toRow;
         this.col = toCol;
 
-        if ((toRow === 0 && this.color === 'black') || (toRow === 7 && this.color === 'white')) {
+        if ((toRow === 7 && this.color === 'black') || (toRow === 0 && this.color === 'white')) {
             newBoard[toRow][toCol] = new King(this.color, toRow, toCol);
         }
 
@@ -132,10 +134,12 @@ export class King extends Piece {
     color;
     row;
     col;
+    type;
     constructor(color, row, col) {
         super(color);
         this.color = color;
         this.row = row;
-        this.col = col
+        this.col = col;
+        this.type = 'king';
     }
 }
