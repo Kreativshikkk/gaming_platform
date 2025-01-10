@@ -1,5 +1,6 @@
 import {MessageType} from '../MessageTypes.js';
 import {Server} from 'socket.io';
+import {Man, King} from './CheckersStructure.js';
 
 const PORT = 8001;
 const MAX_ROOM_USERS = 2;
@@ -23,8 +24,6 @@ class User {
     }
 }
 
-// TODO: прописать логику while может срубить -- ходит.
-
 class Room {
     constructor(id, stake) {
         this.available_colors = ['black', 'white'];
@@ -42,106 +41,13 @@ class Room {
         for (let i = 0; i < boardSize; i++) {
             for (let j = 0; j < boardSize; j++) {
                 if ((i + j) % 2 === 1) {
-                    if (i < 3) board[i][j] = 'black';
-                    else if (i > 4) board[i][j] = 'white';
+                    if (i < 3) board[i][j] = new Man('black', i, j);
+                    else if (i > 4) board[i][j] = new Man('white', i, j);
                 }
             }
         }
         return board;
     };
-
-    makeMove(fromRow, fromCol, toRow, toCol) {
-        const newBoard = this.board.map(row => [...row]);
-        const moveDistance = Math.abs(fromRow - toRow);
-
-        if (moveDistance === 2) {
-            const midRow = fromRow + (toRow - fromRow) / 2;
-            const midCol = fromCol + (toCol - fromCol) / 2;
-            newBoard[midRow][midCol] = null;
-        }
-
-        newBoard[fromRow][fromCol] = null;
-        newBoard[toRow][toCol] = this.board[fromRow][fromCol];
-
-        this.board = newBoard;
-
-        if (moveDistance === 2 && this.canCaptureMore(toRow, toCol)) {
-            this.moving = this.board[toRow][toCol];
-        } else {
-            this.moving = this.moving === 'white' ? 'black' : 'white';
-        }
-    };
-
-    canCaptureMore(row, col) {
-        return this.isValidMove(row, col, row + 2, col + 2) ||
-            this.isValidMove(row, col, row + 2, col - 2) ||
-            this.isValidMove(row, col, row - 2, col + 2) ||
-            this.isValidMove(row, col, row - 2, col - 2);
-    }
-
-    isValidMove(fromRow, fromCol, toRow, toCol) {
-        const player = this.board[fromRow][fromCol];
-        const enemy = player === 'black' ? 'white' : 'black';
-
-        const canCapture = (row, col) => {
-            const boardSize = this.board.length;
-            const availableEnemyDirections = [
-                [1, 1], [1, -1], [-1, 1], [-1, -1]
-            ];
-
-            return availableEnemyDirections.some(([dr, dc]) => {
-                const enemyRow = row + dr;
-                const enemyCol = col + dc;
-                const landingRow = row + 2 * dr;
-                const landingCol = col + 2 * dc;
-
-                return enemyRow >= 0 && enemyRow < boardSize && enemyCol >= 0 && enemyCol < boardSize &&
-                    landingRow >= 0 && landingRow < boardSize && landingCol >= 0 && landingCol < boardSize &&
-                    this.board[enemyRow][enemyCol] === enemy && this.board[landingRow][landingCol] === null;
-            });
-        };
-
-        const canReachAfterCaptures = (row, col, toRow, toCol) => {
-            const boardSize = this.board.length;
-            const availableEnemyDirections = [
-                [1, 1], [1, -1], [-1, 1], [-1, -1]
-            ];
-
-            const afterCapturingPossiblePositions = [];
-
-            availableEnemyDirections.forEach(([dr, dc]) => {
-                const enemyRow = row + dr;
-                const enemyCol = col + dc;
-                const landingRow = row + 2 * dr;
-                const landingCol = col + 2 * dc;
-
-                if (enemyRow >= 0 && enemyRow < boardSize && enemyCol >= 0 && enemyCol < boardSize &&
-                    landingRow >= 0 && landingRow < boardSize && landingCol >= 0 && landingCol < boardSize &&
-                    this.board[enemyRow][enemyCol] === enemy && this.board[landingRow][landingCol] === null) {
-                    afterCapturingPossiblePositions.push([landingRow, landingCol]);
-                }
-            });
-
-            return afterCapturingPossiblePositions.some(([newRow, newCol]) => {
-                return newRow === toRow && newCol === toCol;
-            });
-        };
-
-        const mustCapture = this.board.some((row, i) =>
-            row.some((cell, j) => cell === player && canCapture(i, j))
-        );
-
-        if (mustCapture) {
-            return canReachAfterCaptures(fromRow, fromCol, toRow, toCol);
-        }
-
-        if (player === 'black') {
-            return (toRow - fromRow === 1 && Math.abs(fromCol - toCol) === 1 && this.board[toRow][toCol] === null)
-        }
-        if (player === 'white') {
-            return (fromRow - toRow === 1 && Math.abs(fromCol - toCol) === 1 && this.board[toRow][toCol] === null)
-        }
-    }
 
     assignColor() {
         if (this.users.length === 0) {
@@ -291,12 +197,18 @@ function handleSocket(socket) {
         room = getExistingOrCreateNewRoom(data.roomId);
         user = room.getUserById(data.userId);
         if (room && user) {
-            if (room.getUserById(data.userId).userColor !== room.board[data.fromRow][data.fromCol]) {
+            if (room.getUserById(data.userId).userColor !== room.board[data.fromRow][data.fromCol].color) {
                 return;
             }
-            if (room.isValidMove(data.fromRow, data.fromCol, data.toRow, data.toCol)) {
+
+            const piece = room.board[data.fromRow][data.fromCol];
+            console.log("Piece initialized...");
+
+            if (piece.isValidMove(data.fromRow, data.fromCol, data.toRow, data.toCol, room.board)) {
                 console.log("Making move in room...");
-                room.makeMove(data.fromRow, data.fromCol, data.toRow, data.toCol);
+                data = piece.makeMove(data.fromRow, data.fromCol, data.toRow, data.toCol, room.board);
+                room.board = data.board;
+                room.moving = data.moving;
             } else {
                 room.sendToId(user.userId, MessageType.INVALID_MOVE, {error: 'Invalid move'});
             }

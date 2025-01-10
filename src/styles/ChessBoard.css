@@ -31,6 +31,24 @@
     border-radius: 50%
 }
 
+.checker-king {
+    width: 80%;
+    height: 80%;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    font-size: 55px;
+    text-shadow: 1px 1px 1px black;
+}
+
+.checker-king::before {
+    content: '\265B';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
 .left-digits {
     position: absolute;
     top: 0;

@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import '../styles/ChessBoard.css';
 import {MessageType} from "../MessageTypes.js";
+import {Man, King} from "../server/CheckersStructure.js";
 
 const boardSize = 8;
 const onSelectedColor = '#8e4624';
@@ -16,8 +17,8 @@ const generateInitialBoard = () => {
     for (let i = 0; i < boardSize; i++) {
         for (let j = 0; j < boardSize; j++) {
             if ((i + j) % 2 === 1) {
-                if (i < 3) board[i][j] = 'black';
-                else if (i > 4) board[i][j] = 'white';
+                if (i < 3) board[i][j] = new Man('black', i, j);
+                else if (i > 4) board[i][j] = new Man('white', i, j);
             }
         }
     }
@@ -45,12 +46,12 @@ const Board = ({isGameReady, roomId, userId, socket, usersInRoom}) => {
 
     useEffect(() => {
         if (color === 'black') {
-            setBoard(invertedBoard(board));
+            setBoard(invertedBoard(generateInitialBoard()));
         }
         if (!isGameReady) {
             setBoard(generateInitialBoard());
         }
-    }, [color]);
+    }, [color, isGameReady]);
 
     useEffect(() => {
         const onBoardUpdate = (data) => {
@@ -60,7 +61,6 @@ const Board = ({isGameReady, roomId, userId, socket, usersInRoom}) => {
             } else {
                 setBoard(invertedBoard(data.board));
             }
-
             setMoving(data.moving);
         }
 
@@ -110,7 +110,7 @@ const Board = ({isGameReady, roomId, userId, socket, usersInRoom}) => {
                 toCol: toCol
             });
             setSelected(null);
-        } else if (board[row][col] && board[row][col] === color && moving === color) {
+        } else if (board[row][col] && board[row][col].color === color && moving === color) {
             setSelected({row, col});
         } else if (selected && selected.row === row && selected.col === col) {
             setSelected(null);
@@ -134,11 +134,20 @@ const Board = ({isGameReady, roomId, userId, socket, usersInRoom}) => {
                             color: (rowIndex + colIndex) % 2 === 1 ? textColorOnBlack : textColorOnWhite,
                         }}
                     >
-                        {cell && (
+                        {cell && (cell instanceof Man) && (
                             <div
                                 className="checker"
                                 style={{
-                                    backgroundColor: cell === 'black' ? 'black' : 'white',
+                                    backgroundColor: cell.color === 'black' ? 'black' : 'white',
+                                }}
+                            />
+                        )}
+                        {cell && (cell instanceof King) && (
+                            <div
+                                className="checker-king"
+                                style={{
+                                    backgroundColor: cell.color === 'black' ? 'black' : 'white',
+                                    color: cell.color === 'black' ? 'white' : 'black',
                                 }}
                             />
                         )}
