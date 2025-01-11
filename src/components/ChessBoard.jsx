@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import '../styles/ChessBoard.css';
 import {MessageType} from "../MessageTypes.js";
-import {Man, King} from "../server/CheckersStructure.js";
+import {Man} from "../server/CheckersStructure.js";
 
 const boardSize = 8;
 const onSelectedColor = '#8e4624';
@@ -10,7 +10,7 @@ const whiteCellColor = '#f5dfc3';
 const textColorOnBlack = '#f5dfc3';
 const textColorOnWhite = '#d3733a';
 const columnLabels = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-const rowLabels = ['1', '2', '3', '4', '5', '6', '7', '8'];
+const rowLabels = ['8', '7', '6', '5', '4', '3', '2', '1'];
 
 const generateInitialBoard = () => {
     const board = Array(boardSize).fill(null).map(() => Array(boardSize).fill(null));
@@ -47,6 +47,8 @@ const Board = ({isGameReady, roomId, userId, socket, usersInRoom}) => {
     useEffect(() => {
         if (color === 'black') {
             setBoard(invertedBoard(generateInitialBoard()));
+            columnLabels.reverse();
+            rowLabels.reverse();
         }
         if (!isGameReady) {
             setBoard(generateInitialBoard());

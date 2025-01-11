@@ -28,58 +28,12 @@ export class Man extends Piece {
     }
 
     isValidMove(fromRow, fromCol, toRow, toCol, board) {
-        const enemy = this.color === 'black' ? 'white' : 'black';
-
-        const canReachAfterCaptures = (row, col, toRow, toCol, board) => {
-            const boardSize = board.length;
-            const availableEnemyDirections = [
-                [1, 1], [1, -1], [-1, 1], [-1, -1]
-            ];
-
-            const afterCapturingPossiblePositions = [];
-
-            availableEnemyDirections.forEach(([dr, dc]) => {
-                const enemyRow = row + dr;
-                const enemyCol = col + dc;
-                const landingRow = row + 2 * dr;
-                const landingCol = col + 2 * dc;
-
-                if (enemyRow >= 0 && enemyRow < boardSize && enemyCol >= 0 && enemyCol < boardSize &&
-                    landingRow >= 0 && landingRow < boardSize && landingCol >= 0 && landingCol < boardSize &&
-                    board[enemyRow][enemyCol] !== null &&
-                    board[enemyRow][enemyCol].color === enemy && board[landingRow][landingCol] === null) {
-                    afterCapturingPossiblePositions.push([landingRow, landingCol]);
-                }
-            });
-
-            return afterCapturingPossiblePositions.some(([newRow, newCol]) => {
-                return newRow === toRow && newCol === toCol;
-            });
-        };
-
-        const canCapture = (row, col) => {
-            const boardSize = board.length;
-            const availableEnemyDirections = [
-                [1, 1], [1, -1], [-1, 1], [-1, -1]
-            ];
-            return availableEnemyDirections.some(([dr, dc]) => {
-                const enemyRow = row + dr;
-                const enemyCol = col + dc;
-                const landingRow = row + 2 * dr;
-                const landingCol = col + 2 * dc;
-                return enemyRow >= 0 && enemyRow < boardSize && enemyCol >= 0 && enemyCol < boardSize &&
-                    landingRow >= 0 && landingRow < boardSize && landingCol >= 0 && landingCol < boardSize &&
-                    board[enemyRow][enemyCol] !== null &&
-                    board[enemyRow][enemyCol].color === enemy && board[landingRow][landingCol] === null;
-            });
-        };
-
         const mustCapture = board.some((row, i) =>
-            row.some((cell, j) => cell !== null && cell.color === this.color && canCapture(i, j, board))
+            row.some((cell, j) => cell !== null && cell.color === this.color && cell.canCaptureMore(i, j, board))
         );
 
         if (mustCapture) {
-            return canReachAfterCaptures(fromRow, fromCol, toRow, toCol, board);
+            return this.canCaptureMore(fromRow, fromCol, board) && Math.abs(fromRow - toRow) === 2 && Math.abs(fromCol - toCol) === 2;
         }
 
         if (this.color === 'black') {
@@ -90,12 +44,23 @@ export class Man extends Piece {
         }
     }
 
-    canCaptureMore(row, col, board) {
-        return this.isValidMove(row, col, row + 2, col + 2, board) ||
-            this.isValidMove(row, col, row + 2, col - 2, board) ||
-            this.isValidMove(row, col, row - 2, col + 2, board) ||
-            this.isValidMove(row, col, row - 2, col - 2, board);
-    }
+    canCaptureMore(row, col, board){
+        const enemy = this.color === 'black' ? 'white' : 'black';
+        const boardSize = board.length;
+        const availableEnemyDirections = [
+            [1, 1], [1, -1], [-1, 1], [-1, -1]
+        ];
+        return availableEnemyDirections.some(([dr, dc]) => {
+            const enemyRow = row + dr;
+            const enemyCol = col + dc;
+            const landingRow = row + 2 * dr;
+            const landingCol = col + 2 * dc;
+            return enemyRow >= 0 && enemyRow < boardSize && enemyCol >= 0 && enemyCol < boardSize &&
+                landingRow >= 0 && landingRow < boardSize && landingCol >= 0 && landingCol < boardSize &&
+                board[enemyRow][enemyCol] !== null &&
+                board[enemyRow][enemyCol].color === enemy && board[landingRow][landingCol] === null;
+        });
+    };
 
     makeMove(fromRow, fromCol, toRow, toCol, board) {
         const newBoard = board.map(row => [...row]);
@@ -141,5 +106,112 @@ export class King extends Piece {
         this.row = row;
         this.col = col;
         this.type = 'king';
+    }
+
+    isValidMove(fromRow, fromCol, toRow, toCol, board) {
+        const enemy = this.color === 'black' ? 'white' : 'black';
+        const boardSize = board.length;
+        const dRow = Math.sign(toRow - fromRow);
+        const dCol = Math.sign(toCol - fromCol);
+
+        if (Math.abs(fromRow - toRow) !== Math.abs(fromCol - toCol)) {
+            return false;
+        }
+
+        let pathClear = true;
+        let enemyCaptured = false;
+        let steps = Math.abs(toRow - fromRow);
+
+        for (let i = 1; i <= steps; i++) {
+            let checkRow = fromRow + i * dRow;
+            let checkCol = fromCol + i * dCol;
+            let currentPiece = board[checkRow][checkCol];
+
+            if (currentPiece === null) {
+
+            } else if (currentPiece.color === enemy && !enemyCaptured) {
+                enemyCaptured = i !== steps && checkRow + dRow >= 0 && checkRow + dRow < boardSize &&
+                checkCol + dCol >= 0 && checkCol + dCol < boardSize &&
+                board[checkRow + dRow][checkCol + dCol] === null;
+                if (i === steps) {
+                    pathClear = false;
+                }
+                if (!enemyCaptured) {
+                    break;
+                }
+            } else {
+                pathClear = false;
+                break;
+            }
+        }
+
+        const mustCapture = board.some((row, i) =>
+            row.some((cell, j) => cell !== null && cell.color === this.color && cell.canCaptureMore(i, j, board))
+        );
+
+        if (mustCapture) {
+            return this.canCaptureMore(fromRow, fromCol, board) && enemyCaptured && pathClear;
+        }
+
+        return pathClear && (!enemyCaptured || (enemyCaptured && steps > 1));
+    }
+
+    canCaptureMore(fromRow, fromCol, board) {
+        const enemy = this.color === 'black' ? 'white' : 'black';
+        const boardSize = board.length;
+        const directions = [
+            [1, 1], [1, -1], [-1, 1], [-1, -1]
+        ];
+
+        for (let [dRow, dCol] of directions) {
+            let checkRow = fromRow + dRow;
+            let checkCol = fromCol + dCol;
+
+            while (checkRow >= 0 && checkRow < boardSize && checkCol >= 0 && checkCol < boardSize) {
+                if (board[checkRow][checkCol] !== null) {
+                    if (board[checkRow][checkCol].color === enemy &&
+                        checkRow + dRow >= 0 && checkRow + dRow < boardSize &&
+                        checkCol + dCol >= 0 && checkCol + dCol < boardSize &&
+                        board[checkRow + dRow][checkCol + dCol] === null) {
+                        return true;
+                    }
+                    break;
+                }
+                checkRow += dRow;
+                checkCol += dCol;
+            }
+        }
+
+        return false;
+    }
+
+    makeMove(fromRow, fromCol, toRow, toCol, board) {
+        const newBoard = board.map(row => [...row]);
+        const dRow = Math.sign(toRow - fromRow);
+        const dCol = Math.sign(toCol - fromCol);
+        const steps = Math.abs(toRow - fromRow);
+
+        for (let i = 1; i <= steps; i++) {
+            let checkRow = fromRow + i * dRow;
+            let checkCol = fromCol + i * dCol;
+            newBoard[checkRow][checkCol] = null;
+        }
+
+        newBoard[fromRow][fromCol] = null;
+        newBoard[toRow][toCol] = board[fromRow][fromCol];
+
+        this.row = toRow;
+        this.col = toCol;
+
+        board = newBoard;
+        let moving;
+
+        if (this.canCaptureMore(toRow, toCol, board)) {
+            moving = this.color;
+        } else {
+            moving = this.color === 'white' ? 'black' : 'white';
+        }
+
+        return {board: board, moving: moving};
     }
 }

@@ -1,6 +1,6 @@
 import {MessageType} from '../MessageTypes.js';
 import {Server} from 'socket.io';
-import {Man, King} from './CheckersStructure.js';
+import {Man} from './CheckersStructure.js';
 
 const PORT = 8001;
 const MAX_ROOM_USERS = 2;
@@ -207,7 +207,6 @@ function handleSocket(socket) {
             if (piece.isValidMove(data.fromRow, data.fromCol, data.toRow, data.toCol, room.board)) {
                 console.log("Making move in room...");
                 data = piece.makeMove(data.fromRow, data.fromCol, data.toRow, data.toCol, room.board);
-                console.log(data.board);
                 room.board = data.board;
                 room.moving = data.moving;
             } else {
