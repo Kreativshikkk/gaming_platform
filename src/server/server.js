@@ -1,4 +1,4 @@
-import {MessageType} from '../MessageTypes.js';
+import {MessageType} from '../client/MessageTypes.js';
 import {Server} from 'socket.io';
 import {Man} from './CheckersStructure.js';
 

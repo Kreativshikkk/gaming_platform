@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import '../styles/ChessBoard.css';
 import {MessageType} from "../MessageTypes.js";
-import {Man} from "../server/CheckersStructure.js";
+import {Man} from "../../server/CheckersStructure.js";
 
 const boardSize = 8;
 const onSelectedColor = '#8e4624';
