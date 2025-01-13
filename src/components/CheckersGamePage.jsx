@@ -4,7 +4,7 @@ import GameControls from './GameControls.jsx';
 import '../styles/CheckersGamePage.css';
 import {io} from "socket.io-client";
 
-let socket = io('https://gaming-platform.herokuapp.com/', {reconnection: false});
+let socket = io('https://gaming-platform-575c61d683de.herokuapp.com/', {reconnection: false});
 
 socket.on('connect', () => {
     console.log('Connected to the signaling server');
