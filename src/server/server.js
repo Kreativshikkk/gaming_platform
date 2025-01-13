@@ -2,7 +2,7 @@ import {MessageType} from '../MessageTypes.js';
 import {Server} from 'socket.io';
 import {Man} from './CheckersStructure.js';
 
-const PORT = 8001;
+const PORT = process.env.PORT || 8001;
 const MAX_ROOM_USERS = 2;
 
 const rooms = {};
