@@ -1,6 +1,7 @@
 import React, {useState, useEffect, useContext} from 'react';
 import '../styles/ConnectWallet.css';
 import {WalletContext} from "../WalletContext.js";
+import toastService from "./toastService.jsx";
 
 const ethers = require("ethers");
 
@@ -84,7 +85,7 @@ function ConnectWallet() {
                 console.error(err);
             }
         } else {
-            alert("Please install MetaMask!");
+            toastService.error("Please install MetaMask!");
         }
     };
 

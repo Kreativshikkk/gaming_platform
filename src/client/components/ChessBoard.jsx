@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import '../styles/ChessBoard.css';
 import {MessageType} from "../MessageTypes.js";
 import {Man} from "../../server/CheckersStructure.js";
+import toastService from "./toastService.jsx";
 
 const boardSize = 8;
 const onSelectedColor = '#8e4624';
@@ -76,7 +77,7 @@ const Board = ({isGameReady, roomId, userId, socket, usersInRoom}) => {
 
     useEffect(() => {
         const onInvalidMove = () => {
-            alert('Invalid move!');
+            toastService.warning('Invalid move!');
         }
 
         socket.on(MessageType.INVALID_MOVE, onInvalidMove);
@@ -88,7 +89,7 @@ const Board = ({isGameReady, roomId, userId, socket, usersInRoom}) => {
 
     const handleCellClick = (row, col) => {
         if (!isGameReady) {
-            alert('Waiting for another player');
+            toastService.warning('Waiting for another player');
             return;
         }
         if (selected) {

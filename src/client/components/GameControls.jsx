@@ -2,6 +2,7 @@ import React, {useContext, useEffect, useState} from 'react';
 import '../styles/GameControls.css';
 import {MessageType} from "../MessageTypes.js";
 import {WalletContext} from "../WalletContext.js";
+import toastService from "./toastService.jsx";
 
 
 function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally, socket, setUsersInRoomExternally}) {
@@ -59,17 +60,17 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
 
     const handleCreateRoom = () => {
         if (connectionState !== 'connected') {
-            alert('Please connect your wallet first.');
+            toastService.error('Please connect your wallet first.');
             return;
         }
 
         if (stake === 0) {
-            alert('Please set your stake.');
+            toastService.error('Please set your stake.');
             return;
         }
 
         if (stake > balance) {
-            alert('Insufficient funds');
+            toastService.error('Insufficient funds');
             return;
         }
 
@@ -84,7 +85,7 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
 
         const onError = (data) => {
             console.error('Error connecting to room:', data.error);
-            alert('Error connecting to room: ' + data.error);
+            toastService.error('Error connecting to room: ' + data.error);
         };
 
         socket.once(MessageType.ERROR_ROOM_IS_FULL, onError);
@@ -93,7 +94,7 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
 
     const handleJoinRoom = () => {
         if (connectionState !== 'connected') {
-            alert('Please connect your wallet first.');
+            toastService.error('Please connect your wallet first.');
             return;
         }
 
@@ -109,7 +110,7 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
 
         const onError = (data) => {
             console.error('Error connecting to room:', data.error);
-            alert('Error connecting to room: ' + data.error);
+            toastService.error('Error connecting to room: ' + data.error);
         };
 
         const gotStake = (data) => {
