@@ -104,7 +104,7 @@ function ConnectWallet() {
                 window.ethereum.removeListener('chainChanged', checkNetwork);
             }
         };
-    }, [checkNetwork]);
+    }, []);
 
 
     //listen account changes
@@ -137,7 +137,7 @@ function ConnectWallet() {
                 window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
             }
         };
-    }, [connectWalletHandler, setBalance, setConnectionState]);
+    }, []);
 
 
     //for connecting right after reload
@@ -159,7 +159,7 @@ function ConnectWallet() {
             }
         };
         checkWalletConnection();
-    }, [isWrongNetwork, connectWalletHandler, setConnectionState]);
+    }, [isWrongNetwork]);
 
 
     const buttonState = {
