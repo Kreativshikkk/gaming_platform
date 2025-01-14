@@ -41,7 +41,7 @@ const Board = ({isGameReady, roomId, userId, socket, usersInRoom}) => {
 
     let color;
     if (isGameReady) {
-        color = usersInRoom.filter(user => user.userId === userId)[0]?.userColor;
+        color = usersInRoom.filter(user => user.userId === userId)[0]?.userColor; //a little bit ugly
     }
 
     useEffect(() => {

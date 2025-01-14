@@ -33,7 +33,12 @@ export class Man extends Piece {
         );
 
         if (mustCapture) {
-            return this.canCaptureMore(fromRow, fromCol, board) && Math.abs(fromRow - toRow) === 2 && Math.abs(fromCol - toCol) === 2;
+            const midRow = fromRow + (toRow - fromRow) / 2;
+            const midCol = fromCol + (toCol - fromCol) / 2;
+            const enemy = this.color === 'black' ? 'white' : 'black';
+            return this.canCaptureMore(fromRow, fromCol, board) && Math.abs(fromRow - toRow) === 2 && Math.abs(fromCol - toCol) === 2
+                && board[toRow][toCol] === null && board[midRow][midCol] && board[midRow][midCol].color === enemy;
+            //we'll need to fix this shit...
         }
 
         if (this.color === 'black') {
@@ -186,6 +191,7 @@ export class King extends Piece {
     }
 
     makeMove(fromRow, fromCol, toRow, toCol, board) {
+        let captured = this.canCaptureMore(fromRow, fromCol, board);
         const newBoard = board.map(row => [...row]);
         const dRow = Math.sign(toRow - fromRow);
         const dCol = Math.sign(toCol - fromCol);
@@ -206,7 +212,7 @@ export class King extends Piece {
         board = newBoard;
         let moving;
 
-        if (this.canCaptureMore(toRow, toCol, board)) {
+        if (captured && this.canCaptureMore(toRow, toCol, board)) {
             moving = this.color;
         } else {
             moving = this.color === 'white' ? 'black' : 'white';
