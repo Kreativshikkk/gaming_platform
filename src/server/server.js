@@ -1,10 +1,30 @@
-import {MessageType} from '../client/MessageTypes.js';
-import {Server} from 'socket.io';
-import {Man} from './CheckersStructure.js';
+import path, { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import express from 'express';
+import { Server } from 'socket.io';
+
+import { MessageType } from '../client/MessageTypes.js';
+import { Man } from './CheckersStructure.js';
 import userService from './userService.js';
+import http from 'http';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const PORT = process.env.PORT || 8001;
 const MAX_ROOM_USERS = 2;
+
+const app = express();
+
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, '../../build')));
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, '../../build', 'index.html'));
+    });
+}
+
+
+const server = http.createServer(app);
 
 const rooms = {};
 let lastRoomId = 0;
@@ -483,7 +503,7 @@ function handleSocket(socket) {
     })
 }
 
-const io = new Server(PORT, {
+const io = new Server(server, {
     cors: {
         origin: "*",
         methods: ["GET", "POST"],
@@ -492,4 +512,6 @@ const io = new Server(PORT, {
 });
 
 io.on('connection', handleSocket);
-console.log('Signalling server is running on port %d', PORT);
+server.listen(PORT, () => {
+    console.log(`Signalling server is running on port ${PORT}`);
+});
