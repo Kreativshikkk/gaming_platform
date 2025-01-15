@@ -6,7 +6,7 @@ import toastService from "./toastService.jsx";
 
 
 function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally, socket, setUsersInRoomExternally}) {
-    const [stake, setStake] = useState(0);
+    const [stake, setStake] = useState('');
     const {connectionState, userAccount, balance} = useContext(WalletContext);
     const [roomId, setRoomId] = useState(0);
     const [userId, setUserId] = useState(null);
@@ -168,8 +168,13 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
             return;
         }
 
-        if (stake === 0) {
+        if (stake === '') {
             toastService.error('Please set your stake.');
+            return;
+        }
+
+        if (stake === '0') {
+            toastService.error('Please set a non-zero stake.');
             return;
         }
 
@@ -281,7 +286,22 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
             roomId: roomId,
             userId: userId
         });
-    }
+    };
+
+    const handleStakeInput = (e) => {
+        let val = e.target.value;
+        if (val.length > 1 && val[0] === '0' && val[1] !== '.') {
+            val = val.slice(1);
+        }
+        if (
+            (val === '' || /^[0-9]*\.?[0-9]*$/.test(val)) &&
+            val.length < 16
+        ) {
+            setStake(val);
+        } else {
+            toastService.error('Please enter a valid number');
+        }
+    };
 
     let content;
     if (usersInRoom.length === 0) {
@@ -316,8 +336,10 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
                 <input
                     className="stake-input"
                     type="text"
+                    inputMode="decimal"
                     placeholder="Set your stake"
-                    onChange={(event) => setStake(event.target.value)}
+                    value={stake}
+                    onChange={handleStakeInput}
                 />
             </>
         )
