@@ -102,6 +102,26 @@
     background-color: #c9302c;
 }
 
+.offer-draw-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.offer-draw-button:hover {
+    background-color: #48df4c;
+}
+
+.offer-draw-button-neutral {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+}
+
 .timer-container {
     margin: 10px 0;
     font-size: 1.2em;

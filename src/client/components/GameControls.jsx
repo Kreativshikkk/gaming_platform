@@ -17,6 +17,7 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
     const [moving, setMoving] = useState('white');
     const [gameOver, setGameOver] = useState(false);
     const [winner, setWinner] = useState(null);
+    const [isOfferedDraw, setIsOfferedDraw] = useState(false);
 
     useEffect(() => {
         setPlayerCount(usersInRoom.length);
@@ -71,13 +72,26 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
     useEffect(() => {
         const onOpponentDisconnection = (data) => {
             setUsersInRoom(data.users);
-            toastService.info('Opponent disconnected. Waiting for recconection...');
+            toastService.info('Opponent disconnected. Waiting for reconnection...');
         }
 
         socket.on(MessageType.OPPONENT_DISCONNECTED, onOpponentDisconnection);
 
         return () => {
             socket.off(MessageType.OPPONENT_DISCONNECTED, onOpponentDisconnection);
+        }
+    }, [socket]);
+
+    useEffect(() => {
+        const onIsOfferedDraw = () => {
+            setIsOfferedDraw(true);
+            toastService.info('Opponent offered draw');
+        }
+
+        socket.on(MessageType.OFFER_DRAW, onIsOfferedDraw);
+
+        return () => {
+            socket.off(MessageType.OFFER_DRAW, onIsOfferedDraw);
         }
     }, [socket]);
 
@@ -109,6 +123,36 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
 
         return () => {
             socket.off(MessageType.GAME_OVER, onGameOver);
+        }
+    }, [socket]);
+
+    useEffect(() => {
+        const onDrawReject = () => {
+            setIsOfferedDraw(false);
+            toastService.info('Opponent rejected draw');
+        }
+
+        socket.on(MessageType.REJECT_DRAW, onDrawReject);
+
+        return () => {
+            socket.off(MessageType.REJECT_DRAW, onDrawReject);
+        }
+    }, [socket]);
+
+    useEffect(() => {
+        const onDrawAccept = () => {
+            setGameOver(true);
+            setRoomId(null);
+            setUsersInRoom([]);
+            toastService.info('Game over: Draw!');
+            setWinner('Draw');
+            setIsOfferedDraw(false);
+        }
+
+        socket.on(MessageType.GAME_OVER_DRAW, onDrawAccept);
+
+        return () => {
+            socket.off(MessageType.GAME_OVER_DRAW, onDrawAccept);
         }
     }, [socket]);
 
@@ -215,6 +259,30 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
         socket.emit(MessageType.CUSTOM_DISCONNECT);
     };
 
+    const handleOfferDrawButton = () => {
+        console.log('Offering draw...');
+        socket.emit(MessageType.OFFER_DRAW, {
+            roomId: roomId,
+            userId: userId
+        });
+    };
+
+    const handleAcceptDrawButton = () => {
+        setIsOfferedDraw(false);
+        socket.emit(MessageType.ACCEPT_DRAW, {
+            roomId: roomId,
+            userId: userId
+        });
+    };
+
+    const handleRejectDrawButton = () => {
+        setIsOfferedDraw(false);
+        socket.emit(MessageType.REJECT_DRAW, {
+            roomId: roomId,
+            userId: userId
+        });
+    }
+
     let content;
     if (usersInRoom.length === 0) {
         content = (
@@ -276,7 +344,22 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
                 <button className="disconnect-button" onClick={handleDisconnectButton}>
                     Disconnect
                 </button>
-            </div>)
+                {isOfferedDraw && (
+                    <>
+                        <button className="offer-draw-button" onClick={handleAcceptDrawButton}>
+                            Accept draw
+                        </button>
+                        <button className="disconnect-button" onClick={handleRejectDrawButton}>
+                            Reject draw
+                        </button>
+                    </>
+                )}
+                {!isOfferedDraw && (
+                    <button className="offer-draw-button-neutral" onClick={handleOfferDrawButton}>
+                        Offer draw
+                    </button>
+                )}
+        </div>)
     }
 
     return (
@@ -290,12 +373,17 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
                     <span className="moving-label">(moving: {moving})</span>
                 </div>
             )}
-            {gameOver && (usersInRoom.length === 2) && (
+            {gameOver && (usersInRoom.length === 2) && (winner !== 'Draw') && (
                 <div className="timer-container">
                     <span className="timer-label">Game over! {winner} wins!</span>
                 </div>
             )}
 
+            {gameOver && (usersInRoom.length === 2) && (winner === 'Draw') && (
+                <div className="timer-container">
+                    <span className="timer-label">Game over! Draw!</span>
+                </div>
+            )}
             {content}
         </div>
     );

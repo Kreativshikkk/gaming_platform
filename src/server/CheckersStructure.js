@@ -158,10 +158,9 @@ export class King extends Piece {
                 if (board[newRow][newCol] === null) {
                     return true;
                 }
+                newRow += dRow;
+                newCol += dCol;
             }
-
-            newRow += dRow;
-            newCol += dCol;
         }
 
         return false;

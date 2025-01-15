@@ -32,5 +32,9 @@ export const MessageType = {
     UPDATE_BOARD: 'update_board',
     MAKE_MOVE: 'make_move',
     INVALID_MOVE: 'invalid_move',
-    MOVE_TURN: 'move_turn'
+    MOVE_TURN: 'move_turn',
+    OFFER_DRAW: 'offer_draw',
+    ACCEPT_DRAW: 'accept_draw',
+    REJECT_DRAW: 'reject_draw',
+    GAME_OVER_DRAW: 'game_over_draw'
 };

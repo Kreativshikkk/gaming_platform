@@ -3,7 +3,7 @@ import {Server} from 'socket.io';
 import {Man} from './CheckersStructure.js';
 import userService from './userService.js';
 
-const PORT = 8001;
+const PORT = process.env.PORT || 8001;
 const MAX_ROOM_USERS = 2;
 
 const rooms = {};
@@ -289,7 +289,7 @@ function handleSocket(socket) {
 
         const existingUser = room?.getUserById(user.getId());
         if (existingUser) {
-            console.log("User reconnected to room");
+            console.log('User %d reconnected to room %d', user.getId(), room.roomId);
             socket.emit(MessageType.STAKE, {stake: room.stake});
             room.setUserReconnected(user.getId(), socket);
 
@@ -301,12 +301,15 @@ function handleSocket(socket) {
             });
             // send the current board/timer state to this socket only
 
-            room.broadcastToAll(MessageType.UPDATE_BOARD, {
-                board: room.board,
-                color: user.userColor,
-                moving: room.moving,
-                reconnect: true
-            });
+            setTimeout(() => {
+                room.broadcastToAll(MessageType.UPDATE_BOARD, {
+                    board: room.board,
+                    color: user.userColor,
+                    moving: room.moving,
+                    reconnect: true
+                });
+            }, 50);
+
 
             room.broadcastToAll(MessageType.TIMER, {
                 timeLeft: room.timeLeft,
@@ -438,6 +441,8 @@ function handleSocket(socket) {
 
             if (room.checkIfSomeoneWon()) {
                 room.stopTimer();
+                room.users = [];
+                delete rooms[room.roomId];
             }
         }
     });
@@ -446,17 +451,36 @@ function handleSocket(socket) {
 
     socket.on(MessageType.CUSTOM_DISCONNECT, disconnection);
 
-    socket.on(MessageType.SDP, function (data) {
-        if (room) {
-            room.sendToId(data.target, MessageType.SDP, {userId: user.getId(), sdp: data.sdp});
+    socket.on(MessageType.OFFER_DRAW, function (data) {
+        room = getExistingOrCreateNewRoom(data.roomId);
+        user = room.getUserById(data.userId);
+        if (room && user) {
+            room.sendAll(user, MessageType.OFFER_DRAW, {});
         }
     });
 
-    socket.on(MessageType.ICE_CANDIDATE, function (data) {
-        if (room) {
-            room.sendToId(data.target, MessageType.ICE_CANDIDATE, {userId: user.getId(), candidate: data.candidate});
+    socket.on(MessageType.REJECT_DRAW, function (data) {
+        room = getExistingOrCreateNewRoom(data.roomId);
+        user = room.getUserById(data.userId);
+        if (room && user) {
+            room.sendAll(user, MessageType.REJECT_DRAW, {});
         }
-    });//we don't need this
+    })
+
+    socket.on(MessageType.ACCEPT_DRAW, function (data) {
+        room = getExistingOrCreateNewRoom(data.roomId);
+        user = room.getUserById(data.userId);
+        if (room && user) {
+            room.broadcastToAll(MessageType.GAME_OVER_DRAW, {
+                reason: 'Draw!',
+                loserColor: 'none'
+            });
+            room.stopTimer();
+            room.users = [];
+            console.log('Draw! Room %d is empty - dropping it.', room.getRoomId());
+            delete rooms[room.roomId];
+        }
+    })
 }
 
 const io = new Server(PORT, {
