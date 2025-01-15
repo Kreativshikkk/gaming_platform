@@ -1,19 +1,18 @@
 import {MessageType} from '../client/MessageTypes.js';
 import {Server} from 'socket.io';
 import {Man} from './CheckersStructure.js';
+import userService from './userService.js';
 
 const PORT = 8001;
 const MAX_ROOM_USERS = 2;
 
 const rooms = {};
-let lastUserId = 0;
 let lastRoomId = 0;
 
 
 class User {
-    constructor(userAccount, userBalance, userColor) {
-        lastUserId += 1;
-        this.userId = lastUserId;
+    constructor(userId, userAccount, userBalance, userColor) {
+        this.userId = userId;
         this.userAccount = userAccount;
         this.userBalance = userBalance;
         this.userColor = userColor;
@@ -132,7 +131,14 @@ function handleSocket(socket) {
 
     socket.on(MessageType.JOIN, function (data) {
         if (!user) {
-            user = new User(data.userAccount, data.balance);
+            let userId = userService.findUserByWallet(data.userAccount);
+            if (userId) {
+                user = new User(userId, data.userAccount, data.balance);
+            } else {
+                userId = userService.addUser(data.userAccount);
+                user = new User(userId, data.userAccount, data.balance);
+            }
+
         }
 
         if (data.roomId && rooms[data.roomId]) {
@@ -141,6 +147,9 @@ function handleSocket(socket) {
                 socket.emit(MessageType.ERROR_INSUFFICIENT_FUNDS, {error: `User has insufficient funds, stake in this room: ${room.stake} ETH`});
                 return;
             }
+        } else if (data.stake > data.balance) {
+            socket.emit(MessageType.ERROR_INSUFFICIENT_FUNDS, {error: `User has insufficient funds`});
+            return;
         }
 
         room = getExistingOrCreateNewRoom(data.roomId, data.stake);
@@ -235,7 +244,7 @@ function handleSocket(socket) {
         if (room) {
             room.sendToId(data.target, MessageType.ICE_CANDIDATE, {userId: user.getId(), candidate: data.candidate});
         }
-    });
+    });//we don't need this
 }
 
 const io = new Server(PORT, {
