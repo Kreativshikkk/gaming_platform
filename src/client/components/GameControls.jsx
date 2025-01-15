@@ -13,6 +13,10 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
     const [usersInRoom, setUsersInRoom] = useState([]);
     const [isJoining, setIsJoining] = useState(false);
 
+    const [timeLeft, setTimeLeft] = useState(120);
+    const [moving, setMoving] = useState('white');
+    const [gameOver, setGameOver] = useState(false);
+
     useEffect(() => {
         setPlayerCount(usersInRoom.length);
     }, [usersInRoom, setPlayerCount]);
@@ -34,6 +38,7 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
             setRoomId(data.roomId);
             setUsersInRoom(data.users);
             setUsersInRoomExternally(data.users);
+            setMoving(data.moving);
             console.log('Connected to room:', data.roomId);
         };
 
@@ -45,6 +50,7 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
     }, [userId, socket, setUsersInRoomExternally]);
 
 
+    //maybe we need modify it
     useEffect(() => {
         const userDisconnected = (data) => {
             setUsersInRoom(data.users);
@@ -57,6 +63,35 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
             socket.off(MessageType.USER_LEAVE, userDisconnected);
         };
     }, [userId, socket]);
+
+
+    //timer and game over due to timer
+    useEffect(() => {
+        const onTimer = (data) => {
+            setTimeLeft(data.timeLeft);
+            setMoving(data.moving);
+        };
+        socket.on(MessageType.TIMER, onTimer);
+
+
+        const onGameOver = (data) => {
+            console.log('Game over:', data);
+            setGameOver(true);
+            toastService.info('Game over: time has expired on the move ' + data.loserColor);
+        };
+        socket.on(MessageType.GAME_OVER, onGameOver);
+
+        return () => {
+            socket.off('TIMER', onTimer);
+            socket.off(MessageType.GAME_OVER, onGameOver);
+        };
+    }, [socket]);
+
+    const formatTime = (totalSeconds) => {
+        const mm = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+        const ss = String(totalSeconds % 60).padStart(2, '0');
+        return `${mm}:${ss}`;
+    };
 
     const handleCreateRoom = () => {
         if (connectionState !== 'connected') {
@@ -222,6 +257,15 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
     return (
         <div className="game-controls">
             <h1>Play Checkers</h1>
+
+            {!gameOver && (
+                <div className="timer-container">
+                    <span className="timer-label">Time left:</span>{" "}
+                    {formatTime(timeLeft)}{" "}
+                    <span className="moving-label">(moving: {moving})</span>
+                </div>
+            )}
+
             {content}
         </div>
     );

@@ -101,3 +101,19 @@
 .disconnect-button:hover {
     background-color: #c9302c;
 }
+
+.timer-container {
+    margin: 10px 0;
+    font-size: 1.2em;
+    text-align: center; /* или left, по вкусу */
+}
+
+.timer-label {
+    font-weight: bold;
+    margin-right: 6px;
+}
+
+.moving-label {
+    margin-left: 12px;
+    color: #666;
+}

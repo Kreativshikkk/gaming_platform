@@ -16,7 +16,7 @@ export const MessageType = {
     USER_READY: 'user_ready',
     USER_LEAVE: 'user_leave',
 
-    // WebRtc signalling info, session and ice-framework related
+    // WebRtc signalling info, session and ice-framework related - deprecated
     SDP: 'sdp',
     ICE_CANDIDATE: 'ice_candidate',
 
@@ -26,6 +26,8 @@ export const MessageType = {
     ERROR_INSUFFICIENT_FUNDS: 'error_insufficient_funds',
 
     // Checkers game process
+    TIMER: 'timer',
+    GAME_OVER: 'game_over',
     UPDATE_BOARD: 'update_board',
     MAKE_MOVE: 'make_move',
     INVALID_MOVE: 'invalid_move',

@@ -1,3 +1,16 @@
 {
-  "users": []
+  "users": [
+    {
+      "userId": "1",
+      "walletAddress": "0x7C97c5D99463A335e8F750765cA1E3dE4A9b32f7"
+    },
+    {
+      "userId": "2",
+      "walletAddress": "0x4BB6db2f428B0bD51f6eAd67c622c6a9842a6739"
+    },
+    {
+      "userId": "3",
+      "walletAddress": "0x7F586AAC281348B352ce6eC6Ab758e62905E6B9D"
+    }
+  ]
 }

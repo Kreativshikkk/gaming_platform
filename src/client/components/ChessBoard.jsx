@@ -53,6 +53,10 @@ const Board = ({isGameReady, roomId, userId, socket, usersInRoom}) => {
         }
         if (!isGameReady) {
             setBoard(generateInitialBoard());
+            if (columnLabels[0] !== 'a') {
+                columnLabels.reverse();
+                rowLabels.reverse();
+            }
         }
     }, [color, isGameReady]);
 
