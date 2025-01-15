@@ -206,22 +206,24 @@ function handleSocket(socket) {
 
         const existingUser = room?.getUserById(user.getId());
         if (existingUser) {
+            socket.emit(MessageType.STAKE, {stake: room.stake});
             room.setUserReconnected(user.getId(), socket);
 
-            // maybe we don't need it
             room.broadcastToAll(MessageType.ROOM, {
                 roomId: room.getRoomId(),
                 userId: user.getId(),
                 users: room.getUsers(),
                 moving: room.moving
             });
-
             // send the current board/timer state to this socket only
+
             socket.emit(MessageType.UPDATE_BOARD, {
                 board: room.board,
                 color: user.userColor,
-                moving: room.moving
+                moving: room.moving,
+                reconnect: true
             });
+
             socket.emit(MessageType.TIMER, {
                 timeLeft: room.timeLeft,
                 moving: room.moving
@@ -312,11 +314,18 @@ function handleSocket(socket) {
 
                 room.startTimer();
 
+                room.broadcastToAll(MessageType.TIMER, {
+                    timeLeft: room.timeLeft,
+                    moving: room.moving
+                });
+
                 room.broadcastToAll(MessageType.UPDATE_BOARD, {
                     board: room.board,
                     color: user.userColor,
-                    moving: room.moving
+                    moving: room.moving,
+                    reconnect: false
                 });
+
             } else {
                 room.sendToId(user.userId, MessageType.INVALID_MOVE, {error: 'Invalid move'});
             }

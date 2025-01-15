@@ -10,8 +10,8 @@ const blackCellColor = '#d3733a';
 const whiteCellColor = '#f5dfc3';
 const textColorOnBlack = '#f5dfc3';
 const textColorOnWhite = '#d3733a';
-const columnLabels = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-const rowLabels = ['8', '7', '6', '5', '4', '3', '2', '1'];
+const columnLabelsOriginal  = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+const rowLabelsOriginal  = ['8', '7', '6', '5', '4', '3', '2', '1'];
 
 const generateInitialBoard = () => {
     const board = Array(boardSize).fill(null).map(() => Array(boardSize).fill(null));
@@ -39,26 +39,46 @@ const Board = ({isGameReady, roomId, userId, socket, usersInRoom}) => {
     const [board, setBoard] = useState(generateInitialBoard());
     const [selected, setSelected] = useState(null);
     const [moving, setMoving] = useState('white');
+    const [color, setColor] = useState('white');
 
-    let color;
-    if (isGameReady) {
-        color = usersInRoom.filter(user => user.userId === userId)[0]?.userColor; //a little bit ugly
-    }
+    const [columnLabels, setColumnLabels] = useState(columnLabelsOriginal);
+    const [rowLabels, setRowLabels] = useState(rowLabelsOriginal);
 
     useEffect(() => {
-        if (color === 'black') {
-            setBoard(invertedBoard(generateInitialBoard()));
-            columnLabels.reverse();
-            rowLabels.reverse();
-        }
         if (!isGameReady) {
+            setColor('white');
+            setMoving('white');
             setBoard(generateInitialBoard());
-            if (columnLabels[0] !== 'a') {
-                columnLabels.reverse();
-                rowLabels.reverse();
-            }
+            setColumnLabels(columnLabelsOriginal);
+            setRowLabels(rowLabelsOriginal);
+            return;
         }
-    }, [color, isGameReady]);
+        const me = usersInRoom.find((user) => user.userId === userId);
+        if (!me) {
+            return;
+        }
+        setColor(me.userColor);
+    }, [isGameReady, usersInRoom, userId]);
+
+
+    useEffect(() => {
+        const newBoard = generateInitialBoard();
+        // if ((JSON.stringify(board) !== JSON.stringify(newBoard) || JSON.stringify(board) !== JSON.stringify(invertedBoard(newBoard)))
+        //     && usersInRoom.length === 2) {
+        //     console.log('zalupa otigrala');
+        //     return;
+        // }
+        if (color === 'black') {
+            setBoard(invertedBoard(newBoard));
+            setColumnLabels([...columnLabelsOriginal].reverse());
+            setRowLabels([...rowLabelsOriginal].reverse());
+        } else {
+            setBoard(newBoard);
+            setColumnLabels(columnLabelsOriginal);
+            setRowLabels(rowLabelsOriginal);
+        }
+    }, [color]);
+
 
     useEffect(() => {
         const onBoardUpdate = (data) => {
