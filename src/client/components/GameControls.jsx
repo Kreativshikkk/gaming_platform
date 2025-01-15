@@ -16,9 +16,13 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
     const [timeLeft, setTimeLeft] = useState(120);
     const [moving, setMoving] = useState('white');
     const [gameOver, setGameOver] = useState(false);
+    const [winner, setWinner] = useState(null);
 
     useEffect(() => {
         setPlayerCount(usersInRoom.length);
+        if (usersInRoom.length !== 2) {
+            setGameOver(false); // costil'
+        }
     }, [usersInRoom, setPlayerCount]);
 
     useEffect(() => {
@@ -64,6 +68,19 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
         };
     }, [userId, socket]);
 
+    useEffect(() => {
+        const onOpponentDisconnection = (data) => {
+            setUsersInRoom(data.users);
+            toastService.info('Opponent disconnected. Waiting for recconection...');
+        }
+
+        socket.on(MessageType.OPPONENT_DISCONNECTED, onOpponentDisconnection);
+
+        return () => {
+            socket.off(MessageType.OPPONENT_DISCONNECTED, onOpponentDisconnection);
+        }
+    }, [socket]);
+
 
     //timer and game over due to timer
     useEffect(() => {
@@ -73,18 +90,26 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
         };
         socket.on(MessageType.TIMER, onTimer);
 
-
-        const onGameOver = (data) => {
-            console.log('Game over:', data);
-            setGameOver(true);
-            toastService.info('Game over: time has expired on the move ' + data.loserColor);
+        return () => {
+            socket.off(MessageType.TIMER, onTimer);
         };
+    }, [socket]);
+
+    //game over
+    useEffect(() => {
+        const onGameOver = (data) => {
+            setGameOver(true);
+            setRoomId(null);
+            setUsersInRoom([]);
+            toastService.info(`Game over: ${data.loserColor} loses! ${data.reason}`);
+            setWinner(data.loserColor === 'black' ? 'White' : 'Black');
+        }
+
         socket.on(MessageType.GAME_OVER, onGameOver);
 
         return () => {
-            socket.off('TIMER', onTimer);
             socket.off(MessageType.GAME_OVER, onGameOver);
-        };
+        }
     }, [socket]);
 
     const formatTime = (totalSeconds) => {
@@ -258,11 +283,16 @@ function GameControls({setPlayerCount, setRoomIdExternally, setUserIdExternally,
         <div className="game-controls">
             <h1>Play Checkers</h1>
 
-            {!gameOver && (
+            {!gameOver && (usersInRoom.length === 2) && (
                 <div className="timer-container">
                     <span className="timer-label">Time left:</span>{" "}
                     {formatTime(timeLeft)}{" "}
                     <span className="moving-label">(moving: {moving})</span>
+                </div>
+            )}
+            {gameOver && (usersInRoom.length === 2) && (
+                <div className="timer-container">
+                    <span className="timer-label">Game over! {winner} wins!</span>
                 </div>
             )}
 

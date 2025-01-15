@@ -15,6 +15,7 @@ export const MessageType = {
     USER_JOIN: 'user_join',
     USER_READY: 'user_ready',
     USER_LEAVE: 'user_leave',
+    OPPONENT_DISCONNECTED: 'opponent_disconnected',
 
     // WebRtc signalling info, session and ice-framework related - deprecated
     SDP: 'sdp',

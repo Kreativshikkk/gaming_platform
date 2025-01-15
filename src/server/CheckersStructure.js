@@ -11,6 +11,8 @@ class Piece {
 
     makeMove(fromRow, fromCol, toRow, toCol, board) {
     }
+
+    canMakeMove(board) {}
 }
 
 export class Man extends Piece {
@@ -25,6 +27,26 @@ export class Man extends Piece {
         this.row = row;
         this.col = col;
         this.type = 'man';
+    }
+
+    canMakeMove(board) {
+        const directions = this.color === 'black' ? [[1, 1], [1, -1]] : [[-1, 1], [-1, -1]];
+        const boardSize = board.length;
+
+        for (let [dRow, dCol] of directions) {
+            const newRow = this.row + dRow;
+            const newCol = this.col + dCol;
+
+            if (newRow >= 0 && newRow < boardSize && newCol >= 0 && newCol < boardSize && board[newRow][newCol] === null) {
+                return true;
+            }
+
+            if (this.canCaptureMore(this.row, this.col, board)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     isValidMove(fromRow, fromCol, toRow, toCol, board) {
@@ -85,6 +107,13 @@ export class Man extends Piece {
 
         if ((toRow === 7 && this.color === 'black') || (toRow === 0 && this.color === 'white')) {
             newBoard[toRow][toCol] = new King(this.color, toRow, toCol);
+            const piece = newBoard[toRow][toCol];
+            if (piece.canCaptureMore(toRow, toCol, newBoard)) {
+                return {board: newBoard, moving: this.color};
+            }
+            else {
+                return {board: newBoard, moving: this.color === 'white' ? 'black' : 'white'};
+            }
         }
 
         board = newBoard;
@@ -111,6 +140,31 @@ export class King extends Piece {
         this.row = row;
         this.col = col;
         this.type = 'king';
+    }
+
+    canMakeMove(board) {
+        const directions = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
+        const boardSize = board.length;
+
+        if (this.canCaptureMore(this.row, this.col, board)) {
+            return true;
+        }
+
+        for (let [dRow, dCol] of directions) {
+            let newRow = this.row + dRow;
+            let newCol = this.col + dCol;
+
+            while (newRow >= 0 && newRow < boardSize && newCol >= 0 && newCol < boardSize) {
+                if (board[newRow][newCol] === null) {
+                    return true;
+                }
+            }
+
+            newRow += dRow;
+            newCol += dCol;
+        }
+
+        return false;
     }
 
     isValidMove(fromRow, fromCol, toRow, toCol, board) {

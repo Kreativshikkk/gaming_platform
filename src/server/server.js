@@ -35,6 +35,7 @@ class Room {
         this.moving = 'white';
         this.timeLeft = 120;
         this.timerId = null;
+        this.isGameOver = false;
     }
 
     generateInitialBoard() {
@@ -65,6 +66,69 @@ class Room {
         }
     }
 
+    checkIfSomeoneWon() {
+        let canMoveBlack = false;
+        let canMoveWhite = false;
+        let whitePiecesLeft = false;
+        let blackPiecesLeft = false;
+
+        for (let i = 0; i < this.board.length; i++) {
+            for (let j = 0; j < this.board[i].length; j++) {
+                const piece = this.board[i][j];
+                if (piece) {
+                    if (piece.color === 'black') {
+                        if (piece.canMakeMove(this.board)) {
+                            canMoveBlack = true;
+                        }
+                        blackPiecesLeft = true;
+                    } else {
+                        if (piece.canMakeMove(this.board)) {
+                            canMoveWhite = true;
+                        }
+                        whitePiecesLeft = true;
+                    }
+                }
+            }
+        }
+
+        if (!blackPiecesLeft) {
+            this.broadcastToAll(MessageType.GAME_OVER, {
+                reason: 'No pieces left!',
+                loserColor: 'black'
+            });
+            this.isGameOver = true;
+            return true;
+        }
+
+        if (!whitePiecesLeft) {
+            this.broadcastToAll(MessageType.GAME_OVER, {
+                reason: 'No pieces left!',
+                loserColor: 'white'
+            });
+            this.isGameOver = true;
+            return true;
+        }
+
+        if (!canMoveBlack && canMoveWhite) {
+            this.broadcastToAll(MessageType.GAME_OVER, {
+                reason: 'No moves left!',
+                loserColor: 'black'
+            });
+            this.isGameOver = true;
+            return true;
+        }
+
+        if (!canMoveWhite && canMoveBlack) {
+            this.broadcastToAll(MessageType.GAME_OVER, {
+                reason: 'No moves left!',
+                loserColor: 'white'
+            });
+            this.isGameOver = true;
+            return true;
+        }
+        return false;
+    }
+
     getRoomId() {
         return this.roomId;
     }
@@ -84,7 +148,7 @@ class Room {
     }
 
     isEmpty() {
-        return this.usersAmount() === 0; //
+        return this.usersAmount() === 0;
     }
 
     addUser(user, socket) {
@@ -109,6 +173,14 @@ class Room {
         }
     }
 
+    bothUsersDisconnected() {
+        this.isGameOver = true;
+        this.broadcastToAll(MessageType.GAME_OVER, {
+            reason: 'Both players disconnected!',
+            loserColor: this.moving
+        });
+    }
+
     startTimer() {
         // If there is already a timer, reset it first
         this.stopTimer();
@@ -126,9 +198,16 @@ class Room {
             if (this.timeLeft <= 0) {
                 this.stopTimer();
                 this.broadcastToAll(MessageType.GAME_OVER, {
-                    reason: 'time_is_up',
+                    reason: 'Time is up!',
                     loserColor: this.moving
                 });
+                const userId = this.users.find(user => user.userColor === this.moving).getId();
+                this.broadcastToAll(MessageType.USER_LEAVE, {
+                    userId: userId,
+                    users: this.getUsers()
+                });
+                this.removeUser(userId);
+                this.isGameOver = true;
             }
         }, 1000);
     }
@@ -192,6 +271,10 @@ function handleSocket(socket) {
             }
 
         }
+        else {
+            user.connected = true;
+            console.log('User %d reconnected to room %d', user.getId(), room.roomId);
+        }
 
         if (data.roomId && rooms[data.roomId]) {
             room = rooms[data.roomId];
@@ -206,6 +289,7 @@ function handleSocket(socket) {
 
         const existingUser = room?.getUserById(user.getId());
         if (existingUser) {
+            console.log("User reconnected to room");
             socket.emit(MessageType.STAKE, {stake: room.stake});
             room.setUserReconnected(user.getId(), socket);
 
@@ -217,14 +301,14 @@ function handleSocket(socket) {
             });
             // send the current board/timer state to this socket only
 
-            socket.emit(MessageType.UPDATE_BOARD, {
+            room.broadcastToAll(MessageType.UPDATE_BOARD, {
                 board: room.board,
                 color: user.userColor,
                 moving: room.moving,
                 reconnect: true
             });
 
-            socket.emit(MessageType.TIMER, {
+            room.broadcastToAll(MessageType.TIMER, {
                 timeLeft: room.timeLeft,
                 moving: room.moving
             });
@@ -274,17 +358,38 @@ function handleSocket(socket) {
 
     function disconnection() {
         if (room) {
-            room.setUserDisconnected(user.getId());
-            console.log(
-                'User %d DISCONNECTED from room %d. (mark disconnected) Users in room still: %d',
-                user.getId(), room.getRoomId(), room.usersAmount()
-            );
-
-            room.sendAll(user, MessageType.USER_LEAVE, {
-                userId: user.getId(),
-                users: room.getUsers()
-            });
-
+            if (room.isGameOver || room.usersAmount() !== 2) {
+                room.removeUser(user.getId());
+                console.log(
+                    'User %d DISCONNECTED from room %d. Users in room still: %d',
+                    user.getId(), room.getRoomId(), room.usersAmount()
+                );
+                room.broadcastToAll(user, MessageType.USER_LEAVE, {
+                    userId: user.getId(),
+                    users: room.getUsers()
+                });
+            }
+            else {
+                room.setUserDisconnected(user.getId());
+                console.log(
+                    'User %d DISCONNECTED from room %d. (mark disconnected) Users in room still: %d',
+                    user.getId(), room.getRoomId(), room.usersAmount()
+                );
+                const opponent = room.users.find(u => user.getId() !== u.getId());
+                if (opponent && !opponent.connected) {
+                    room.bothUsersDisconnected();
+                    room.sendAll(user, MessageType.USER_LEAVE, {
+                        userId: user.getId(),
+                        users: []
+                    })
+                    room.users = [];
+                } else if (opponent && opponent.connected) {
+                    room.sendAll(user, MessageType.OPPONENT_DISCONNECTED, {
+                        userId: user.getId(),
+                        users: room.getUsers()
+                    });
+                }
+            }
 
             // this we need delete maybe
             if (room.isEmpty()) {
@@ -330,6 +435,10 @@ function handleSocket(socket) {
                 room.sendToId(user.userId, MessageType.INVALID_MOVE, {error: 'Invalid move'});
             }
             console.log("Sending updated board...");
+
+            if (room.checkIfSomeoneWon()) {
+                room.stopTimer();
+            }
         }
     });
 
