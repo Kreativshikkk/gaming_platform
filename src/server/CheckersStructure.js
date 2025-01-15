@@ -92,6 +92,7 @@ export class Man extends Piece {
     makeMove(fromRow, fromCol, toRow, toCol, board) {
         const newBoard = board.map(row => [...row]);
         const moveDistance = Math.abs(fromRow - toRow);
+        const isCapture = moveDistance === 2;
 
         if (moveDistance === 2) {
             const midRow = fromRow + (toRow - fromRow) / 2;
@@ -108,7 +109,7 @@ export class Man extends Piece {
         if ((toRow === 7 && this.color === 'black') || (toRow === 0 && this.color === 'white')) {
             newBoard[toRow][toCol] = new King(this.color, toRow, toCol);
             const piece = newBoard[toRow][toCol];
-            if (piece.canCaptureMore(toRow, toCol, newBoard)) {
+            if (piece.canCaptureMore(toRow, toCol, newBoard) && isCapture) {
                 return {board: newBoard, moving: this.color};
             }
             else {
