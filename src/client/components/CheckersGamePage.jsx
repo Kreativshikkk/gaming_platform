@@ -5,7 +5,7 @@ import '../styles/CheckersGamePage.css';
 import {io} from "socket.io-client";
 import toastService from "./toastService.jsx";
 
-let socket = io('localhost:8001', {reconnection: false});
+let socket = io('https://gaming-platform-2e5d8bfb6a52.herokuapp.com/', {reconnection: false});
 
 socket.on('connect', () => {
     console.log('Connected to the signaling server');
