@@ -1,6 +1,6 @@
 import {toast, Zoom} from "react-toastify";
 
-const success = (message, options = {}) => {
+const success = (message) => {
     toast.success(message, {
         position: "bottom-right",
         autoClose: 4000,
@@ -14,7 +14,7 @@ const success = (message, options = {}) => {
     });
 };
 
-export const error = (message, options = {}) => {
+export const error = (message) => {
     toast.error(message, {
         position: "bottom-right",
         autoClose: 4000,
@@ -28,7 +28,7 @@ export const error = (message, options = {}) => {
     });
 };
 
-const info = (message, options = {}) => {
+const info = (message) => {
     toast.info(message, {
         position: "bottom-right",
         autoClose: 4000,
@@ -42,7 +42,7 @@ const info = (message, options = {}) => {
     });
 };
 
-const warning = (message, options = {}) => {
+const warning = (message) => {
     toast.warning(message, {
         position: "bottom-right",
         autoClose: 4000,

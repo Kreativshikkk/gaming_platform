@@ -5,7 +5,7 @@ import '../styles/CheckersGamePage.css';
 import {io} from "socket.io-client";
 import toastService from "./toastService.jsx";
 
-let socket = io('http://172.29.66.59:8001', {reconnection: false});
+let socket = io('http://localhost:8001', {reconnection: false});
 
 socket.on('connect', () => {
     console.log('Connected to the signaling server');
